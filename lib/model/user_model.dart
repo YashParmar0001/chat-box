@@ -1,10 +1,11 @@
 class UserModel {
+  final String email;
   final String name;
   final String bio;
   final String? profilePicUrl;
 
-//<editor-fold desc="Data Methods">
   const UserModel({
+    required this.email,
     required this.name,
     required this.bio,
     this.profilePicUrl,
@@ -12,15 +13,17 @@ class UserModel {
 
   @override
   String toString() {
-    return 'UserModel{ name: $name, bio: $bio, profilePicUrl: $profilePicUrl,}';
+    return 'UserModel{ name: $name, bio: $bio, profilePicUrl: $profilePicUrl, email: $email}';
   }
 
   UserModel copyWith({
+    String? email,
     String? name,
     String? bio,
     String? profilePicUrl,
   }) {
     return UserModel(
+      email: email ?? this.email,
       name: name ?? this.name,
       bio: bio ?? this.bio,
       profilePicUrl: profilePicUrl ?? this.profilePicUrl,
@@ -32,6 +35,7 @@ class UserModel {
       'name': name,
       'bio': bio,
       'profilePicUrl': profilePicUrl ?? '',
+      'email': email,
     };
   }
 
@@ -41,8 +45,7 @@ class UserModel {
       bio: map['bio'] as String,
       profilePicUrl:
           (map['profilePicUrl'] as String) == '' ? null : map['profilePicUrl'],
+      email: map['email'] as String,
     );
   }
-
-//</editor-fold>
 }

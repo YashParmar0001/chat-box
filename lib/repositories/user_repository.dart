@@ -40,8 +40,8 @@ class UserRepository {
     if (image != null && !removeImage) {
       dev.log('Uploading user image', name: 'Profile');
       await _storage.ref('profile_pics/$email').putFile(
-        image,
-      );
+            image,
+          );
       dev.log('Image uploaded', name: 'Profile');
       final url = await _storage.ref('profile_pics/$email').getDownloadURL();
       user = user.copyWith(profilePicUrl: url);
@@ -52,8 +52,8 @@ class UserRepository {
     }
 
     await _firestore.collection('users').doc(email).update(
-      user.toMap(),
-    );
+          user.toMap(),
+        );
   }
 
   Stream<UserModel?> getUserProfile(String email) {
@@ -63,6 +63,14 @@ class UserRepository {
         if (data == null) return null;
 
         return UserModel.fromMap(data);
+      },
+    );
+  }
+
+  Stream<List<UserModel>> getUsers() {
+    return _firestore.collection('users').snapshots().map(
+      (snapshot) {
+        return snapshot.docs.map((e) => UserModel.fromMap(e.data())).toList();
       },
     );
   }

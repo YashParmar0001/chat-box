@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../constants/colors.dart';
 
@@ -9,6 +10,7 @@ class CustomTextField extends StatelessWidget {
     this.obscureText = false,
     this.keyboardType,
     this.textCapitalization = TextCapitalization.none,
+    this.textInputAction = TextInputAction.done,
     required this.controller,
   });
 
@@ -17,6 +19,7 @@ class CustomTextField extends StatelessWidget {
   final bool obscureText;
   final TextInputType? keyboardType;
   final TextCapitalization textCapitalization;
+  final TextInputAction textInputAction;
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +49,7 @@ class CustomTextField extends StatelessWidget {
           obscureText: obscureText,
           keyboardType: keyboardType,
           textCapitalization: textCapitalization,
+          textInputAction: textInputAction,
         ),
       ],
     );

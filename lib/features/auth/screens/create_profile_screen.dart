@@ -57,6 +57,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                   label: 'Your name',
                   controller: nameController,
                   textCapitalization: TextCapitalization.words,
+                  textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 20),
                 CustomTextField(
@@ -144,12 +145,13 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   void _createUserProfile() {
     final email = Get.find<AuthController>().email;
     final user = UserModel(
+      email: email!,
       name: nameController.text,
       bio: bioController.text,
       profilePicUrl: '',
     );
     userProfileController.createUserProfile(
-      email: email!,
+      email: email,
       user: user,
       image: _image,
     );

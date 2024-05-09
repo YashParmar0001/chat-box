@@ -161,13 +161,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void _createUserProfile() {
     final email = Get.find<AuthController>().email;
     final user = UserModel(
+      email: email!,
       name: nameController.text,
       bio: bioController.text,
       profilePicUrl: oldProfileUrl,
     );
     dev.log('OldProfileUrl: $oldProfileUrl | Image: $_image', name: 'Profile');
     userProfileController.updateUserProfile(
-      email: email!,
+      email: email,
       user: user,
       image: _image,
       removeProfilePhoto: oldProfileUrl == null && _image == null,

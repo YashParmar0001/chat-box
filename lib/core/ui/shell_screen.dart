@@ -45,24 +45,24 @@ class _ShellScreenState extends State<ShellScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildItem(0, Assets.iconsHome),
-            FloatingActionButton.extended(
-              onPressed: () {},
-              label: Text(
-                'New Chat',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontFamily: 'Poppins',
-                      color: Colors.white,
-                    ),
-              ),
-              icon: const Icon(
-                Icons.add,
-                color: Colors.white,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              backgroundColor: AppColors.tartOrange,
-            ),
+            // FloatingActionButton.extended(
+            //   onPressed: () {},
+            //   label: Text(
+            //     'New Chat',
+            //     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            //           fontFamily: 'Poppins',
+            //           color: Colors.white,
+            //         ),
+            //   ),
+            //   icon: const Icon(
+            //     Icons.add,
+            //     color: Colors.white,
+            //   ),
+            //   shape: RoundedRectangleBorder(
+            //     borderRadius: BorderRadius.circular(30),
+            //   ),
+            //   backgroundColor: AppColors.tartOrange,
+            // ),
             _buildItem(1, Assets.iconsUser),
           ],
         ),

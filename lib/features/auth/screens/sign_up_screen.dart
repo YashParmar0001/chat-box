@@ -89,12 +89,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   controller: emailController,
                   label: 'Your email',
                   keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 10),
                 CustomTextField(
                   controller: passwordController,
                   label: 'Password',
                   obscureText: true,
+                  textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 10),
                 CustomTextField(
