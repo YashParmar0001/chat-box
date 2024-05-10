@@ -54,7 +54,7 @@ class CurrentChatController2 extends GetxController {
     getMessages();
 
     messageTextController.addListener(() {
-      if (messageTextController.text.isEmpty) {
+      if (messageTextController.text.trim().isEmpty) {
         _sendButtonEnabled.value = false;
       } else {
         _sendButtonEnabled.value = true;
@@ -95,12 +95,18 @@ class CurrentChatController2 extends GetxController {
     if (fetchMore) query = query.startAfterDocument(start!);
 
     query.limit(_messageLimit).get().then((snapshots) {
+      dev.log('Got snapshots: ${snapshots.docs}', name: 'Chat');
       if (fetchMore) end = start;
       if (snapshots.docs.isNotEmpty) start = snapshots.docs.last;
 
       var query = ref.orderBy('time');
 
       if (start != null) query = query.startAtDocument(start!);
+
+      if (messages.isNotEmpty && snapshots.docs.isEmpty) {
+        _isLoadingMessages.value = false;
+        return;
+      }
 
       if (fetchMore) query = query.endBeforeDocument(end!);
 
@@ -144,7 +150,7 @@ class CurrentChatController2 extends GetxController {
     final message = MessageModel(
       senderId: currentUserId,
       receiverId: otherUserId,
-      text: messageTextController.text,
+      text: messageTextController.text.trim(),
       time: DateTime.now(),
     );
 

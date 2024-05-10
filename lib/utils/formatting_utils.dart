@@ -1,27 +1,26 @@
 import 'package:intl/intl.dart';
 
 class FormattingUtils {
-  static String formatMessageTime(DateTime timestamp) {
+  static String getSectionTitle(DateTime timestamp) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = DateTime(now.year, now.month, now.day - 1);
     final tomorrow = DateTime(now.year, now.month, now.day + 1);
 
-    final aDate = DateTime(timestamp.year, timestamp.month, timestamp.day);
-    final aTime = DateFormat.jm().format(timestamp); // e.g., 2:34 PM
+    final date = DateTime(timestamp.year, timestamp.month, timestamp.day);
 
-    if (aDate == today) {
-      return 'Today $aTime';
-    } else if (aDate == tomorrow) {
-      return 'Tomorrow $aTime';
-    } else if (aDate == yesterday) {
-      return 'Yesterday $aTime';
-    } else if (aDate.isAfter(
+    if (date == today) {
+      return 'Today';
+    } else if (date == yesterday) {
+      return 'Yesterday';
+    } else if (date == tomorrow) {
+      return 'Tomorrow';
+    }else if (date.isAfter(
       DateTime(now.year, now.month, now.day - 7),
     )) {
-      return '${DateFormat.EEEE().format(timestamp)} $aTime'; // e.g., Wednesday 2:34 PM
+      return DateFormat.EEEE().format(timestamp); // e.g., Wednesday
     } else {
-      return '${DateFormat('d MMM').format(timestamp)} $aTime'; // e.g., 19 Sep 2:34 PM
+      return DateFormat('d MMM').format(timestamp);
     }
   }
 }

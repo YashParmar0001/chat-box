@@ -15,9 +15,14 @@ class MessageModel {
 
   int get timestamp => time.millisecondsSinceEpoch;
 
+  // @override
+  // String toString() {
+  //   return 'Message{senderId: $senderId, receiverId: $receiverId, text: $text, time: $time}';
+  // }
+
   @override
   String toString() {
-    return 'Message{senderId: $senderId, receiverId: $receiverId, text: $text, time: $time}';
+    return 'Message{text: $text}';
   }
 
   Map<String, dynamic> toMap() {

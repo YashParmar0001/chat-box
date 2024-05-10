@@ -3,6 +3,7 @@ import 'package:chat_box/model/message_model.dart';
 import 'package:chat_box/utils/formatting_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 import '../../../constants/colors.dart';
 
@@ -67,7 +68,7 @@ class ChatBubble extends StatelessWidget {
                   right: isCurrentUser ? 10 : 0,
                 ),
                 child: Text(
-                  FormattingUtils.formatMessageTime(message.time),
+                    DateFormat.jm().format(message.time),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.grey,
                       ),
