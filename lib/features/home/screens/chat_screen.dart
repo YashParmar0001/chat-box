@@ -5,6 +5,7 @@ import 'package:chat_box/constants/colors.dart';
 import 'package:chat_box/controller/auth_controller.dart';
 import 'package:chat_box/controller/current_chat_controller.dart';
 import 'package:chat_box/features/home/widgets/chat_bubble.dart';
+import 'package:chat_box/features/home/widgets/chat_input_field.dart';
 import 'package:chat_box/model/user_model.dart';
 import 'package:chat_box/utils/formatting_utils.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,7 @@ class ChatScreen extends StatefulWidget {
   });
 
   final UserModel user;
-  final CurrentChatController2 chatController;
+  final CurrentChatController chatController;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -148,60 +149,8 @@ class _ChatScreenState extends State<ChatScreen> {
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 5,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: ShapeDecoration(
-                      color: Colors.grey.withOpacity(0.5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: TextField(
-                      controller: widget.chatController.messageTextController,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 0,
-                        ),
-                        hintText: 'Type something...',
-                        hintStyle:
-                            Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Colors.black.withOpacity(0.5),
-                                ),
-                      ),
-                      textCapitalization: TextCapitalization.sentences,
-                      onSubmitted: (value) {
-                        if (value.isNotEmpty || value != '') sendMessage();
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Obx(
-                  () {
-                    final enabled = widget.chatController.sendButtonEnabled;
-                    return IconButton(
-                      onPressed: () {
-                        if (enabled) sendMessage();
-                      },
-                      icon: Icon(
-                        Icons.send,
-                        color: enabled ? AppColors.tartOrange : Colors.grey,
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
+          ChatInputField(chatController: widget.chatController),
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -286,9 +235,5 @@ class _ChatScreenState extends State<ChatScreen> {
               sectionDate,
         )
         .toList();
-  }
-
-  void sendMessage() {
-    widget.chatController.sendMessage();
   }
 }

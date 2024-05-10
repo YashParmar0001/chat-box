@@ -7,6 +7,7 @@ class Assets {
   static const String fontsPoppinsRegular = 'assets/fonts/Poppins-Regular.ttf';
   static const String iconsHome = 'assets/icons/home.svg';
   static const String iconsUser = 'assets/icons/user.svg';
+  static const String imagesPlaceholderImage = 'assets/images/placeholder-image.jpg';
   static const String imagesUserProfile = 'assets/images/user-profile.jpg';
 
 }

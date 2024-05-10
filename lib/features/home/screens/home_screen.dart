@@ -64,7 +64,7 @@ class _Chat extends StatelessWidget {
         () => ChatScreen(
           user: user,
           chatController: Get.put(
-            CurrentChatController2(
+            CurrentChatController(
               currentUserId: Get.find<AuthController>().email!,
               otherUserId: user.email,
             ),

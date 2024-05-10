@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer' as dev;
+import 'dart:io';
 
 import 'package:chat_box/model/message_model.dart';
 import 'package:chat_box/repositories/chat_repository.dart';
@@ -7,9 +8,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-// For testing pagination
-class CurrentChatController2 extends GetxController {
-  CurrentChatController2({
+class CurrentChatController extends GetxController {
+  CurrentChatController({
     required this.currentUserId,
     required this.otherUserId,
   });
@@ -28,6 +28,12 @@ class CurrentChatController2 extends GetxController {
 
   final String currentUserId;
   final String otherUserId;
+
+  final _selectedImage = Rx<File?>(null);
+
+  File? get selectedImage => _selectedImage.value;
+
+  set selectedImage(File? file) => _selectedImage.value = file;
 
   final messageTextController = TextEditingController();
   final _isSendingMessage = false.obs;
@@ -155,98 +161,26 @@ class CurrentChatController2 extends GetxController {
     );
 
     try {
-      await chatRepository.sendMessage(chatKey: chatKey, message: message);
+      await chatRepository.sendMessage(
+        chatKey: chatKey,
+        message: message,
+        image: selectedImage,
+      );
       messageTextController.clear();
     } catch (e) {
       dev.log('Got error: $e', name: 'Chat');
       Get.snackbar('Chat', 'Something went wrong while sending the message!');
     }
+    selectedImage = null;
     _isSendingMessage.value = false;
   }
 
-  Future<void> deleteMessage(String id) async {
+  Future<void> deleteMessage(MessageModel message) async {
     try {
-      await chatRepository.deleteMessage(chatKey: chatKey, id: id);
+      await chatRepository.deleteMessage(chatKey: chatKey, message: message);
     } catch (e) {
       dev.log('Got error: $e', name: 'Chat');
       Get.snackbar('Chat', 'Something went wrong while deleting the message!');
     }
-  }
-}
-
-class CurrentChatController extends GetxController {
-  CurrentChatController({
-    required this.currentUserId,
-    required this.otherUserId,
-  });
-
-  final String currentUserId;
-  final String otherUserId;
-
-  final messageTextController = TextEditingController();
-  final _isSendingMessage = false.obs;
-  final _sendButtonEnabled = false.obs;
-
-  final _messages = <MessageModel>[].obs;
-
-  List<MessageModel> get messages => _messages;
-
-  bool get isSendingMessage => _isSendingMessage.value;
-
-  bool get sendButtonEnabled => _sendButtonEnabled.value;
-
-  final chatRepository = ChatRepository();
-
-  StreamSubscription? messagesSubscription;
-
-  @override
-  void onInit() {
-    messagesSubscription = chatRepository.getMessages(chatKey).listen((event) {
-      _messages.value = event;
-    });
-
-    messageTextController.addListener(() {
-      if (messageTextController.text.isEmpty) {
-        _sendButtonEnabled.value = false;
-      } else {
-        _sendButtonEnabled.value = true;
-      }
-    });
-
-    super.onInit();
-  }
-
-  @override
-  void onClose() {
-    messageTextController.dispose();
-    messagesSubscription?.cancel();
-    super.onClose();
-  }
-
-  String get chatKey {
-    final sortedEmails = [currentUserId, otherUserId]..sort();
-
-    String chatKey = sortedEmails.join('#');
-
-    return chatKey;
-  }
-
-  Future<void> sendMessage() async {
-    _isSendingMessage.value = true;
-    final message = MessageModel(
-      senderId: currentUserId,
-      receiverId: otherUserId,
-      text: messageTextController.text,
-      time: DateTime.now(),
-    );
-
-    try {
-      await chatRepository.sendMessage(chatKey: chatKey, message: message);
-      messageTextController.clear();
-    } catch (e) {
-      dev.log('Got error: $e', name: 'Chat');
-      Get.snackbar('Chat', 'Something went wrong while sending the message!');
-    }
-    _isSendingMessage.value = false;
   }
 }
