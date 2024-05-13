@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_box/controller/current_chat_controller.dart';
+import 'package:chat_box/features/home/screens/video_player_screen.dart';
 import 'package:chat_box/generated/assets.dart';
 import 'package:chat_box/model/message_model.dart';
 import 'package:chat_box/utils/formatting_utils.dart';
@@ -63,42 +64,9 @@ class ChatBubble extends StatelessWidget {
                 child: Builder(
                   builder: (context) {
                     if (message.imageUrl != null) {
-                      return CachedNetworkImage(
-                        imageUrl: message.imageUrl!,
-                        imageBuilder: (context, imageProvider) {
-                          return GestureDetector(
-                            onTap: () {
-                              showImageViewer(
-                                context,
-                                imageProvider,
-                                swipeDismissible: true,
-                                useSafeArea: true,
-                                doubleTapZoomable: true,
-                                immersive: false,
-                              );
-                            },
-                            child: Image(
-                              image: imageProvider,
-                              fit: BoxFit.cover,
-                              height: 250,
-                            ),
-                          );
-                        },
-                        placeholder: (context, url) {
-                          return Image.asset(
-                            Assets.imagesPlaceholderImage,
-                            fit: BoxFit.cover,
-                            height: 250,
-                          );
-                        },
-                        errorWidget: (context, url, error) {
-                          return Image.asset(
-                            Assets.imagesPlaceholderImage,
-                            fit: BoxFit.cover,
-                            height: 250,
-                          );
-                        },
-                      );
+                      return _buildImage();
+                    } else if (message.videoUrl != null) {
+                      return _buildVideo(context);
                     } else {
                       return Text(
                         message.text,
@@ -127,6 +95,97 @@ class ChatBubble extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  CachedNetworkImage _buildImage() {
+    return CachedNetworkImage(
+      imageUrl: message.imageUrl!,
+      imageBuilder: (context, imageProvider) {
+        return GestureDetector(
+          onTap: () {
+            showImageViewer(
+              context,
+              imageProvider,
+              swipeDismissible: true,
+              useSafeArea: true,
+              doubleTapZoomable: true,
+              immersive: false,
+            );
+          },
+          child: Image(
+            image: imageProvider,
+            fit: BoxFit.cover,
+            height: 250,
+          ),
+        );
+      },
+      placeholder: (context, url) {
+        return Image.asset(
+          Assets.imagesPlaceholderImage,
+          fit: BoxFit.cover,
+          height: 250,
+        );
+      },
+      errorWidget: (context, url, error) {
+        return Image.asset(
+          Assets.imagesPlaceholderImage,
+          fit: BoxFit.cover,
+          height: 250,
+        );
+      },
+    );
+  }
+
+  Widget _buildVideo(BuildContext context) {
+    Widget videoPlaceholder = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.video_camera_back_outlined,
+          color: isCurrentUser ? Colors.white : AppColors.tartOrange,
+        ),
+        const SizedBox(width: 10),
+        Text(
+          'Video',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: isCurrentUser ? Colors.white : Colors.black,
+                fontFamily: 'Poppins',
+              ),
+        ),
+      ],
+    );
+
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => VideoPlayerScreen(videoUrl: message.videoUrl!));
+      },
+      child: (message.videoThumbnailUrl != null)
+          ? CachedNetworkImage(
+              imageUrl: message.videoThumbnailUrl!,
+              imageBuilder: (context, imageProvider) {
+                return Stack(
+                  children: [
+                    Image(
+                      image: imageProvider,
+                      fit: BoxFit.cover,
+                      // height: 150,
+                      width: 200,
+                    ),
+                    const Positioned.fill(
+                      child: Icon(
+                        Icons.play_arrow_rounded,
+                        color: Colors.white,
+                        size: 50,
+                      ),
+                    ),
+                  ],
+                );
+              },
+              errorWidget: (context, url, error) => videoPlaceholder,
+              placeholder: (context, url) => videoPlaceholder,
+            )
+          : videoPlaceholder,
     );
   }
 

@@ -31,9 +31,25 @@ class CurrentChatController extends GetxController {
 
   final _selectedImage = Rx<File?>(null);
 
+  final _selectedVideo = Rx<File?>(null);
+
   File? get selectedImage => _selectedImage.value;
 
-  set selectedImage(File? file) => _selectedImage.value = file;
+  File? get selectedVideo => _selectedVideo.value;
+
+  set selectedImage(File? file) {
+    _selectedImage.value = file;
+    if (file != null) {
+      _selectedVideo.value = null;
+    }
+  }
+
+  set selectedVideo(File? file) {
+    _selectedVideo.value = file;
+    if (file != null) {
+      _selectedImage.value = null;
+    }
+  }
 
   final messageTextController = TextEditingController();
   final _isSendingMessage = false.obs;
@@ -165,6 +181,7 @@ class CurrentChatController extends GetxController {
         chatKey: chatKey,
         message: message,
         image: selectedImage,
+        video: selectedVideo,
       );
       messageTextController.clear();
     } catch (e) {
@@ -172,6 +189,7 @@ class CurrentChatController extends GetxController {
       Get.snackbar('Chat', 'Something went wrong while sending the message!');
     }
     selectedImage = null;
+    selectedVideo = null;
     _isSendingMessage.value = false;
   }
 

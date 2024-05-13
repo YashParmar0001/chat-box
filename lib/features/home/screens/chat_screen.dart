@@ -1,9 +1,9 @@
 import 'dart:developer' as dev;
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chat_box/constants/colors.dart';
 import 'package:chat_box/controller/auth_controller.dart';
 import 'package:chat_box/controller/current_chat_controller.dart';
+import 'package:chat_box/features/home/screens/user_profile_screen.dart';
 import 'package:chat_box/features/home/widgets/chat_bubble.dart';
 import 'package:chat_box/features/home/widgets/chat_input_field.dart';
 import 'package:chat_box/model/user_model.dart';
@@ -11,7 +11,6 @@ import 'package:chat_box/utils/formatting_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 
 import '../../../generated/assets.dart';
 import '../../../model/message_model.dart';
@@ -54,49 +53,52 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            CachedNetworkImage(
-              imageUrl: widget.user.profilePicUrl ?? '',
-              placeholder: (context, url) {
-                return ClipOval(
-                  child: Image.asset(
-                    Assets.imagesUserProfile,
-                    fit: BoxFit.cover,
-                    width: 50,
-                    height: 50,
-                  ),
-                );
-              },
-              imageBuilder: (context, imageProvider) {
-                return ClipOval(
-                  child: Image(
-                    image: imageProvider,
-                    fit: BoxFit.cover,
-                    width: 50,
-                    height: 50,
-                  ),
-                );
-              },
-              errorWidget: (context, url, error) {
-                return ClipOval(
-                  child: Image.asset(
-                    Assets.imagesUserProfile,
-                    fit: BoxFit.cover,
-                    width: 50,
-                    height: 50,
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: 10),
-            Text(
-              widget.user.name,
-              style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-          ],
+        title: GestureDetector(
+          onTap: () => Get.to(() => UserProfileScreen(user: widget.user)),
+          child: Row(
+            children: [
+              CachedNetworkImage(
+                imageUrl: widget.user.profilePicUrl ?? '',
+                placeholder: (context, url) {
+                  return ClipOval(
+                    child: Image.asset(
+                      Assets.imagesUserProfile,
+                      fit: BoxFit.cover,
+                      width: 50,
+                      height: 50,
+                    ),
+                  );
+                },
+                imageBuilder: (context, imageProvider) {
+                  return ClipOval(
+                    child: Image(
+                      image: imageProvider,
+                      fit: BoxFit.cover,
+                      width: 50,
+                      height: 50,
+                    ),
+                  );
+                },
+                errorWidget: (context, url, error) {
+                  return ClipOval(
+                    child: Image.asset(
+                      Assets.imagesUserProfile,
+                      fit: BoxFit.cover,
+                      width: 50,
+                      height: 50,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 10),
+              Text(
+                widget.user.name,
+                style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ],
+          ),
         ),
       ),
       body: Column(
@@ -108,18 +110,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 dev.log('Updated messages: $list', name: 'Chat');
                 return Stack(
                   children: [
-                    // ListView.builder(
-                    //   controller: scrollController,
-                    //   reverse: true,
-                    //   itemCount: list.length,
-                    //   itemBuilder: (context, index) {
-                    //     return ChatBubble(
-                    //       isCurrentUser: list[index].senderId ==
-                    //           Get.find<AuthController>().email!,
-                    //       message: list[index],
-                    //     );
-                    //   },
-                    // ),
                     ListView.builder(
                       controller: scrollController,
                       reverse: true,
@@ -128,16 +118,6 @@ class _ChatScreenState extends State<ChatScreen> {
                         return _buildMessageSections(context, index);
                       },
                     ),
-                    // CustomScrollView(
-                    //   slivers: [
-                    //     SliverList(
-                    //       delegate: SliverChildBuilderDelegate(
-                    //         _buildMessageSections,
-                    //         childCount: _calculateSectionCount(list),
-                    //       ),
-                    //     ),
-                    //   ],
-                    // ),
                     if (widget.chatController.isLoadingMessages)
                       const Positioned.fill(
                         child: Center(

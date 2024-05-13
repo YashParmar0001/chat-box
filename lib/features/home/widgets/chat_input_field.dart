@@ -20,11 +20,12 @@ class ChatInputField extends StatelessWidget {
         vertical: 5,
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           IconButton(
-            onPressed: () => _showBottomSheet(context),
+            onPressed: () => _showMediaOptions(context),
             icon: const Icon(
-              Icons.add_photo_alternate_outlined,
+              Icons.perm_media_outlined,
               color: AppColors.tartOrange,
             ),
           ),
@@ -38,6 +39,8 @@ class ChatInputField extends StatelessWidget {
               ),
               child: TextField(
                 // textAlignVertical: TextAlignVertical.top,
+                minLines: 1,
+                maxLines: 5,
                 controller: chatController.messageTextController,
                 decoration: InputDecoration(
                   border: InputBorder.none,
@@ -87,7 +90,7 @@ class ChatInputField extends StatelessWidget {
     chatController.sendMessage();
   }
 
-  void _showBottomSheet(BuildContext context) {
+  void _showMediaOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -97,42 +100,132 @@ class ChatInputField extends StatelessWidget {
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              IconButton(
-                onPressed: () {
-                  Get.back();
-                  _selectImage(ImageSource.gallery);
-                },
-                icon: const Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.photo_library_sharp,
-                    ),
-                    Text('From gallery'),
-                  ],
-                ),
+              _buildMediaOption(
+                context: context,
+                icon: Icons.add_photo_alternate_outlined,
+                label: 'Send Photo',
+                onPressed: () => _showPhotoOptions(context),
               ),
-              IconButton(
-                onPressed: () {
-                  Get.back();
-                  _selectImage(ImageSource.camera);
-                },
-                icon: const Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.camera_alt_outlined,
-                    ),
-                    Text('Take photo'),
-                  ],
-                ),
+              _buildMediaOption(
+                context: context,
+                icon: Icons.video_collection_outlined,
+                label: 'Send Video',
+                onPressed: () => _showVideoOptions(context),
               ),
             ],
           ),
         );
       },
     );
+  }
+
+  void _showPhotoOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: 20,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildMediaOption(
+                context: context,
+                icon: Icons.add_photo_alternate_outlined,
+                label: 'From Gallery',
+                onPressed: () {
+                  // Get.back();
+                  _selectImage(ImageSource.gallery);
+                },
+              ),
+              _buildMediaOption(
+                context: context,
+                icon: Icons.camera_alt_outlined,
+                label: 'Take Photo',
+                onPressed: () => _selectImage(ImageSource.camera),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showVideoOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: 20,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildMediaOption(
+                context: context,
+                icon: Icons.video_collection_outlined,
+                label: 'From Gallery',
+                onPressed: () => _selectVideo(ImageSource.gallery),
+              ),
+              _buildMediaOption(
+                context: context,
+                icon: Icons.video_camera_back_outlined,
+                label: 'Take Video',
+                onPressed: () => _selectVideo(ImageSource.camera),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMediaOption({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return IconButton(
+      onPressed: () {
+        Get.back();
+        onPressed();
+      },
+      icon: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: AppColors.tartOrange,),
+          SizedBox(
+            width: 60,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _selectVideo(ImageSource source) async {
+    final picker = ImagePicker();
+    final video = await picker.pickVideo(
+      source: source,
+      maxDuration: const Duration(seconds: 10),
+    );
+    if (video != null) {
+      final videoFile = File(video.path);
+      debugPrint('Video: $videoFile');
+      chatController.selectedVideo = File(video.path);
+      sendMessage();
+    }
   }
 
   Future<void> _selectImage(ImageSource source) async {

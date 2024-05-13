@@ -1,12 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_box/controller/auth_controller.dart';
 import 'package:chat_box/controller/user_profile_controller.dart';
+import 'package:chat_box/core/ui/profile_photo.dart';
 import 'package:chat_box/features/profile/screens/edit_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../constants/colors.dart';
-import '../../../generated/assets.dart';
 
 class MyProfileScreen extends StatelessWidget {
   const MyProfileScreen({super.key});
@@ -21,7 +20,6 @@ class MyProfileScreen extends StatelessWidget {
         title: Text(
           'My Profile',
           style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                fontFamily: 'Poppins',
                 fontWeight: FontWeight.w600,
               ),
         ),
@@ -52,7 +50,7 @@ class MyProfileScreen extends StatelessWidget {
                     Row(
                       children: [
                         const Spacer(),
-                        _buildProfilePictureSection(user.profilePicUrl),
+                        ProfilePhoto(url: user.profilePicUrl),
                         const Spacer(),
                       ],
                     ),
@@ -121,46 +119,6 @@ class MyProfileScreen extends StatelessWidget {
               ),
         ),
       ],
-    );
-  }
-
-  Widget _buildProfilePictureSection(String? url) {
-    return Container(
-      width: 140,
-      height: 140,
-      decoration: const ShapeDecoration(
-        shape: CircleBorder(),
-        shadows: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 5,
-            spreadRadius: 1,
-            offset: Offset.zero,
-          ),
-        ],
-      ),
-      child: ClipOval(
-        child: (url == null)
-            ? Image.asset(
-                Assets.imagesUserProfile,
-                fit: BoxFit.cover,
-              )
-            : CachedNetworkImage(
-                imageUrl: url,
-                imageBuilder: (context, imageProvider) {
-                  return Image(
-                    image: imageProvider,
-                    fit: BoxFit.cover,
-                  );
-                },
-                errorWidget: (context, url, error) {
-                  return Image.asset(
-                    Assets.imagesUserProfile,
-                    fit: BoxFit.cover,
-                  );
-                },
-              ),
-      ),
     );
   }
 }

@@ -5,6 +5,8 @@ class MessageModel {
   final String text;
   final DateTime time;
   final String? imageUrl;
+  final String? videoUrl;
+  final String? videoThumbnailUrl;
 
   MessageModel({
     // required this.messageId,
@@ -13,6 +15,8 @@ class MessageModel {
     required this.text,
     required this.time,
     this.imageUrl,
+    this.videoUrl,
+    this.videoThumbnailUrl,
   });
 
   int get timestamp => time.millisecondsSinceEpoch;
@@ -27,8 +31,6 @@ class MessageModel {
     return 'Message{text: $text}';
   }
 
-
-
   Map<String, dynamic> toMap() {
     return {
       // 'messageId': messageId,
@@ -36,7 +38,9 @@ class MessageModel {
       'receiverId': receiverId,
       'text': text,
       'time': time.millisecondsSinceEpoch,
-      'imageUrl' : imageUrl ?? '',
+      'imageUrl': imageUrl ?? '',
+      'videoUrl': videoUrl ?? '',
+      'thumbnailUrl' : videoThumbnailUrl ?? '',
     };
   }
 
@@ -48,6 +52,8 @@ class MessageModel {
       text: map['text'] as String,
       time: DateTime.fromMillisecondsSinceEpoch(map['time'] as int),
       imageUrl: map['imageUrl'] == '' ? null : map['imageUrl'],
+      videoUrl: map['videoUrl'] == '' ? null : map['videoUrl'],
+      videoThumbnailUrl: map['thumbnailUrl'] == '' ? null : map['thumbnailUrl'],
     );
   }
 
@@ -57,6 +63,8 @@ class MessageModel {
     String? text,
     DateTime? time,
     String? imageUrl,
+    String? videoUrl,
+    String? videoThumbnailUrl,
   }) {
     return MessageModel(
       senderId: senderId ?? this.senderId,
@@ -64,6 +72,8 @@ class MessageModel {
       text: text ?? this.text,
       time: time ?? this.time,
       imageUrl: imageUrl ?? this.imageUrl,
+      videoUrl: videoUrl ?? this.videoUrl,
+      videoThumbnailUrl: videoThumbnailUrl ?? this.videoThumbnailUrl,
     );
   }
 }
