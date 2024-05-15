@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class MessageModel {
   // final String messageId;
   final String senderId;
@@ -7,6 +9,7 @@ class MessageModel {
   final String? imageUrl;
   final String? videoUrl;
   final String? videoThumbnailUrl;
+  String? localImagePath;
 
   MessageModel({
     // required this.messageId,
@@ -17,9 +20,20 @@ class MessageModel {
     this.imageUrl,
     this.videoUrl,
     this.videoThumbnailUrl,
+    this.localImagePath,
   });
 
   int get timestamp => time.millisecondsSinceEpoch;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MessageModel &&
+          runtimeType == other.runtimeType &&
+          timestamp == other.timestamp;
+
+  @override
+  int get hashCode => timestamp.hashCode;
 
   // @override
   // String toString() {
@@ -28,32 +42,53 @@ class MessageModel {
 
   @override
   String toString() {
-    return 'Message{text: $text}';
+    return 'Message{text: $text, imagePath: $localImagePath}';
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMapTime() {
     return {
       // 'messageId': messageId,
-      'senderId': senderId,
-      'receiverId': receiverId,
-      'text': text,
-      'time': time.millisecondsSinceEpoch,
-      'imageUrl': imageUrl ?? '',
-      'videoUrl': videoUrl ?? '',
-      'thumbnailUrl' : videoThumbnailUrl ?? '',
+      'sender_id': senderId,
+      'receiver_id': receiverId,
+      'content': text,
+      'time': time.toUtc(),
+      'image_url': imageUrl ?? '',
+      // 'local_image_uri': localImagePath ?? '',
+      'video_url': videoUrl ?? '',
+      'video_thumbnail_url': videoThumbnailUrl ?? '',
+    };
+  }
+
+  // For sql
+  Map<String, dynamic> toMapTimestamp() {
+    return {
+      // 'messageId': messageId,
+      'sender_id': senderId,
+      'receiver_id': receiverId,
+      'content': text,
+      'timestamp': timestamp,
+      'image_url': imageUrl,
+      'local_image_uri': localImagePath,
+      'video_url': videoUrl,
+      'video_thumbnail_url': videoThumbnailUrl,
     };
   }
 
   factory MessageModel.fromMap(Map<String, dynamic> map) {
     return MessageModel(
       // messageId: map['messageId'] as String,
-      senderId: map['senderId'] as String,
-      receiverId: map['receiverId'] as String,
-      text: map['text'] as String,
-      time: DateTime.fromMillisecondsSinceEpoch(map['time'] as int),
-      imageUrl: map['imageUrl'] == '' ? null : map['imageUrl'],
-      videoUrl: map['videoUrl'] == '' ? null : map['videoUrl'],
-      videoThumbnailUrl: map['thumbnailUrl'] == '' ? null : map['thumbnailUrl'],
+      senderId: map['sender_id'] as String,
+      receiverId: map['receiver_id'] as String,
+      text: map['content'] as String,
+      time: (map['time'] != null)
+          ? (map['time'] as Timestamp).toDate()
+          : DateTime.fromMillisecondsSinceEpoch(map['timestamp']),
+      imageUrl: map['image_url'] == '' ? null : map['image_url'],
+      videoUrl: map['video_url'] == '' ? null : map['video_url'],
+      videoThumbnailUrl:
+          map['video_thumbnail_url'] == '' ? null : map['video_thumbnail_url'],
+      localImagePath:
+          map['local_image_uri'] == '' ? null : map['local_image_uri'],
     );
   }
 
@@ -65,6 +100,7 @@ class MessageModel {
     String? imageUrl,
     String? videoUrl,
     String? videoThumbnailUrl,
+    String? localImagePath,
   }) {
     return MessageModel(
       senderId: senderId ?? this.senderId,
@@ -74,6 +110,7 @@ class MessageModel {
       imageUrl: imageUrl ?? this.imageUrl,
       videoUrl: videoUrl ?? this.videoUrl,
       videoThumbnailUrl: videoThumbnailUrl ?? this.videoThumbnailUrl,
+      localImagePath: localImagePath ?? this.localImagePath,
     );
   }
 }

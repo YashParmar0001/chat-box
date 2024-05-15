@@ -106,14 +106,14 @@ class MyProfileScreen extends StatelessWidget {
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.displayMedium?.copyWith(
+          style: Theme.of(context).textTheme.displaySmall?.copyWith(
                 color: AppColors.tartOrange,
                 fontFamily: 'Poppins',
               ),
         ),
         Text(
           data,
-          style: Theme.of(context).textTheme.displayLarge?.copyWith(
+          style: Theme.of(context).textTheme.displayMedium?.copyWith(
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w500,
               ),

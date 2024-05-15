@@ -43,7 +43,9 @@ class _ChatScreenState extends State<ChatScreen> {
       if (maxScroll - currentScroll <= 100 &&
           scrollController.position.userScrollDirection ==
               ScrollDirection.reverse) {
-        widget.chatController.getMoreMessages();
+        if (!widget.chatController.atMaxLimit) {
+          widget.chatController.getMoreMessages();
+        }
       }
     });
     super.initState();

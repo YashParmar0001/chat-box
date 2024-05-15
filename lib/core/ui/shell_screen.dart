@@ -1,10 +1,7 @@
-import 'package:chat_box/constants/colors.dart';
 import 'package:chat_box/features/home/screens/home_screen.dart';
 import 'package:chat_box/features/profile/screens/my_profile_screen.dart';
 import 'package:chat_box/generated/assets.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class ShellScreen extends StatefulWidget {

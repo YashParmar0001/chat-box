@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:developer' as dev;
 
 import 'package:chat_box/model/message_model.dart';
+import 'package:chat_box/services/local_photo_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path_provider/path_provider.dart';
@@ -59,7 +60,7 @@ class ChatRepository {
         .doc(chatKey)
         .collection('messages')
         .doc(message.timestamp.toString())
-        .set(message.toMap());
+        .set(message.toMapTime());
   }
 
   Future<String?> uploadImage({
@@ -135,6 +136,15 @@ class ChatRepository {
     required MessageModel message,
   }) async {
     if (message.imageUrl != null) {
+      dev.log('Deleting message images | localPath: ${message.localImagePath}',
+          name: 'Image');
+      if (message.localImagePath != null) {
+        dev.log(
+          'Deleting local image: ${message.localImagePath}',
+          name: 'Image',
+        );
+        await LocalPhotoService.deletePhoto(message.localImagePath!);
+      }
       await _storage.ref('images/$chatKey/${message.timestamp}').delete();
     }
 
@@ -162,8 +172,12 @@ class ChatRepository {
         .collection('messages')
         .orderBy('time', descending: true)
         .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((e) => MessageModel.fromMap(e.data())).toList();
-    });
+        .map(
+      (snapshot) {
+        return snapshot.docs
+            .map((e) => MessageModel.fromMap(e.data()))
+            .toList();
+      },
+    );
   }
 }

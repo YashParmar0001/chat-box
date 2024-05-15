@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:chat_box/model/message_model.dart';
 import 'package:chat_box/repositories/chat_repository.dart';
+import 'package:chat_box/services/local_photo_service.dart';
+import 'package:chat_box/services/sqlite_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -14,7 +16,15 @@ class CurrentChatController extends GetxController {
     required this.otherUserId,
   });
 
+  final SqliteService sqliteService = Get.find<SqliteService>();
+
   final _messageLimit = 10;
+  final _atMaxLimit = false.obs;
+
+  bool get atMaxLimit => _atMaxLimit.value;
+
+  // int get _page => _listeners.length;
+  int page = 1;
 
   final _messages = <MessageModel>[].obs;
   final _isLoadingMessages = true.obs;
@@ -98,13 +108,27 @@ class CurrentChatController extends GetxController {
     super.onClose();
   }
 
-  void getMessages() {
+  Future<void> getMessages() async {
+    _messages.value = await sqliteService.getMessages(chatKey: chatKey);
+    dev.log('Local messages: $messages', name: 'LocalStorage');
+
     startListeningForMessages(false);
   }
 
-  void getMoreMessages() {
-    dev.log('Fetching more messages', name: 'Chat');
-    startListeningForMessages(true);
+  Future<void> getMoreMessages() async {
+    _isLoadingMessages.value = true;
+    dev.log('Fetching more messages | Page: $page', name: 'Chat');
+    final newMessages = await sqliteService.getMessages(
+      chatKey: chatKey,
+      page: page,
+    );
+    if (newMessages.isEmpty) {
+      _atMaxLimit.value = true;
+    }
+    _messages.addAll(newMessages);
+    page++;
+    _isLoadingMessages.value = false;
+    // startListeningForMessages(true);
   }
 
   void startListeningForMessages(bool fetchMore) {
@@ -116,12 +140,25 @@ class CurrentChatController extends GetxController {
 
     if (fetchMore) query = query.startAfterDocument(start!);
 
-    query.limit(_messageLimit).get().then((snapshots) {
-      dev.log('Got snapshots: ${snapshots.docs}', name: 'Chat');
+    query.limit(_messageLimit).get().then((snapshots) async {
+      dev.log(
+        'Got snapshots: ${snapshots.docs.map((e) => e.data()['content']).toList()}',
+        name: 'Chat',
+      );
+      if (snapshots.metadata.isFromCache) {
+        dev.log('Snapshots are from cache', name: 'Chat');
+        _isLoadingMessages.value = false;
+        return;
+      }
       if (fetchMore) end = start;
       if (snapshots.docs.isNotEmpty) start = snapshots.docs.last;
 
       var query = ref.orderBy('time');
+
+      if (!fetchMore && snapshots.docs.isNotEmpty) {
+        dev.log('Synchronizing messages with local database', name: 'Chat');
+        await synchronizeWithLocalDB(snapshots.docs);
+      }
 
       if (start != null) query = query.startAtDocument(start!);
 
@@ -132,13 +169,27 @@ class CurrentChatController extends GetxController {
 
       if (fetchMore) query = query.endBeforeDocument(end!);
 
-      final listener = query.snapshots().listen((event) {
+      final listener = query.snapshots().listen((event) async {
         for (var change in event.docChanges) {
           if (change.type == DocumentChangeType.added) {
-            dev.log('New message added', name: 'Chat');
-            _messages.add(MessageModel.fromMap(change.doc.data()!));
+            MessageModel message = MessageModel.fromMap(change.doc.data()!);
+
+            if (!_messages.contains(message)) {
+              dev.log(
+                'New message added: ${message.text}, ${message.localImagePath}',
+                name: 'Chat',
+              );
+              _messages.insert(0, message);
+              _messages.value = Set<MessageModel>.from(_messages).toList();
+
+              message = await processLocalImagePath(message);
+
+              // Store message locally
+              sqliteService.storeMessage(message: message, chatKey: chatKey);
+            }
           } else if (change.type == DocumentChangeType.modified) {
             dev.log('Message modified', name: 'Chat');
+
             final messageModel = MessageModel.fromMap(change.doc.data()!);
             final existingMessageIndex = messages.indexWhere(
               (message) =>
@@ -147,20 +198,28 @@ class CurrentChatController extends GetxController {
             );
 
             if (existingMessageIndex != -1) {
-              // Replace the existing message with the new one
               _messages[existingMessageIndex] = messageModel;
             } else {
-              // Add the new message to the list
               _messages.add(messageModel);
             }
+
+            sqliteService.updateMessage(message: messageModel);
           } else if (change.type == DocumentChangeType.removed) {
-            dev.log('Message deleted', name: 'Chat');
-            _messages.removeWhere(
-              (e) => e.timestamp.toString() == change.doc.id,
-            );
+            // dev.log(
+            //   'Message deleted by ${change.doc.data()!['sender_id']}',
+            //   name: 'Chat',
+            // );
+            if (currentUserId != (change.doc.data()!['sender_id']).toString()) {
+              // dev.log('Deleting other user message', name: 'LocalStorage');
+              _messages.removeWhere(
+                (e) => e.timestamp.toString() == change.doc.id,
+              );
+              sqliteService.deleteMessage(messageId: int.parse(change.doc.id));
+            }
           }
         }
-        _messages.sort((a, b) => b.timestamp - a.timestamp);
+        // _messages.sort((a, b) => b.timestamp - a.timestamp);
+        // _cachePhotosAndAssignMessages();
       });
       _listeners.add(listener);
       _isLoadingMessages.value = false;
@@ -184,21 +243,97 @@ class CurrentChatController extends GetxController {
         video: selectedVideo,
       );
       messageTextController.clear();
+      if (_listeners.isEmpty) {
+        startListeningForMessages(false);
+      }
     } catch (e) {
       dev.log('Got error: $e', name: 'Chat');
       Get.snackbar('Chat', 'Something went wrong while sending the message!');
     }
+    _isSendingMessage.value = false;
     selectedImage = null;
     selectedVideo = null;
-    _isSendingMessage.value = false;
   }
 
   Future<void> deleteMessage(MessageModel message) async {
     try {
+      dev.log('Deleting this user message', name: 'Deletion');
+      await sqliteService.deleteMessage(messageId: message.timestamp);
+      _messages.removeWhere((e) => e.timestamp == message.timestamp);
       await chatRepository.deleteMessage(chatKey: chatKey, message: message);
     } catch (e) {
       dev.log('Got error: $e', name: 'Chat');
       Get.snackbar('Chat', 'Something went wrong while deleting the message!');
     }
+  }
+
+  Future<MessageModel> processLocalImagePath(MessageModel message) async {
+    if (message.imageUrl != null) {
+      final localPath = await LocalPhotoService.getLocalPhotoPath(
+        chatKey: chatKey,
+        messageId: message.timestamp,
+      );
+      if (localPath == null) {
+        final path = await LocalPhotoService.downloadAndCachePhoto(
+          chatKey: chatKey,
+          messageId: message.timestamp,
+        );
+        message = message.copyWith(localImagePath: path);
+      } else {
+        message = message.copyWith(localImagePath: localPath);
+      }
+    }
+
+    return message;
+  }
+
+  Future<void> synchronizeWithLocalDB(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
+  ) async {
+    final localMessages = messages;
+    final firestoreMessages =
+        docs.map((e) => MessageModel.fromMap(e.data())).toList();
+
+    final firestoreMessageIds =
+        firestoreMessages.map((msg) => msg.timestamp).toSet();
+
+    final messagesToDelete = localMessages
+        .where((msg) => !firestoreMessageIds.contains(msg.timestamp))
+        .toList();
+
+    final messagesToAddOrUpdate = firestoreMessages
+        .where((msg) => !localMessages
+            .any((localMsg) => localMsg.timestamp == msg.timestamp))
+        .toList();
+
+    final messagesToUpdate = firestoreMessages
+        .where(
+          (msg) => localMessages.any(
+            (localMsg) =>
+                localMsg.timestamp == msg.timestamp && localMsg != msg,
+          ),
+        )
+        .toList();
+
+    for (final message in messagesToDelete) {
+      await sqliteService.deleteMessage(messageId: message.timestamp);
+    }
+
+    for (final message in messagesToAddOrUpdate) {
+      await sqliteService.storeMessage(chatKey: chatKey, message: message);
+    }
+
+    for (final message in messagesToUpdate) {
+      final localMessage = localMessages.firstWhere(
+        (e) => e.timestamp == message.timestamp,
+      );
+      await sqliteService.updateMessage(
+        message: message.copyWith(
+          localImagePath: localMessage.localImagePath,
+        ),
+      );
+    }
+
+    _messages.value = await sqliteService.getMessages(chatKey: chatKey);
   }
 }

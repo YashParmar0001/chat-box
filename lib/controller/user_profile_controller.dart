@@ -3,12 +3,9 @@ import 'dart:developer' as dev;
 import 'dart:io';
 
 import 'package:chat_box/core/ui/shell_screen.dart';
-import 'package:chat_box/features/home/screens/home_screen.dart';
 import 'package:chat_box/model/user_model.dart';
 import 'package:chat_box/repositories/user_repository.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserProfileController extends GetxController {
   final _currentUserProfile = Rx<UserModel?>(null);

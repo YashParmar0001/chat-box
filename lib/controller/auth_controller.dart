@@ -4,7 +4,6 @@ import 'package:chat_box/controller/user_profile_controller.dart';
 import 'package:chat_box/core/ui/shell_screen.dart';
 import 'package:chat_box/features/auth/screens/create_profile_screen.dart';
 import 'package:chat_box/features/auth/screens/login_screen.dart';
-import 'package:chat_box/features/home/screens/home_screen.dart';
 import 'package:chat_box/repositories/auth_repository.dart';
 import 'package:get/get.dart';
 
