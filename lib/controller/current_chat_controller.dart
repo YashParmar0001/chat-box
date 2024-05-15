@@ -180,12 +180,24 @@ class CurrentChatController extends GetxController {
                 name: 'Chat',
               );
               _messages.insert(0, message);
-              _messages.value = Set<MessageModel>.from(_messages).toList();
+              // _messages.value = Set<MessageModel>.from(_messages).toList();
 
               message = await processLocalImagePath(message);
+              message = await processLocalVideoPath(message);
 
               // Store message locally
               sqliteService.storeMessage(message: message, chatKey: chatKey);
+
+              if (message.localImagePath != null ||
+                  message.localVideoPath != null) {
+                final existingMessageIndex = messages.indexWhere(
+                  (msg) => message.timestamp == msg.timestamp,
+                );
+
+                if (existingMessageIndex != -1) {
+                  _messages[existingMessageIndex] = message;
+                }
+              }
             }
           } else if (change.type == DocumentChangeType.modified) {
             dev.log('Message modified', name: 'Chat');
@@ -281,6 +293,26 @@ class CurrentChatController extends GetxController {
         message = message.copyWith(localImagePath: path);
       } else {
         message = message.copyWith(localImagePath: localPath);
+      }
+    }
+
+    return message;
+  }
+
+  Future<MessageModel> processLocalVideoPath(MessageModel message) async {
+    if (message.videoUrl != null) {
+      final localPath = await LocalPhotoService.getLocalVideoPath(
+        chatKey: chatKey,
+        messageId: message.timestamp,
+      );
+      if (localPath == null) {
+        final path = await LocalPhotoService.downloadAndCacheVideo(
+          chatKey: chatKey,
+          messageId: message.timestamp,
+        );
+        message = message.copyWith(localVideoPath: path);
+      } else {
+        message = message.copyWith(localVideoPath: localPath);
       }
     }
 

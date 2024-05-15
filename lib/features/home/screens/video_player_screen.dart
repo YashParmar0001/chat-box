@@ -1,12 +1,19 @@
+import 'dart:io';
+
 import 'package:chat_box/constants/colors.dart';
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
-  const VideoPlayerScreen({super.key, required this.videoUrl});
+  const VideoPlayerScreen({
+    super.key,
+    required this.videoUrl,
+    this.localVideoPath,
+  });
 
   final String videoUrl;
+  final String? localVideoPath;
 
   @override
   State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
@@ -18,9 +25,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   @override
   void initState() {
-    _controller = VideoPlayerController.networkUrl(
-      Uri.parse(widget.videoUrl),
-    )..initialize().then((_) => setState(() {}));
+    if (widget.localVideoPath != null) {
+      _controller = VideoPlayerController.file(
+        File(widget.localVideoPath!),
+      );
+    } else {
+      _controller = VideoPlayerController.networkUrl(
+        Uri.parse(widget.videoUrl),
+      );
+    }
+    _controller.initialize().then((_) => setState(() {}));
+
     _chewieController = ChewieController(videoPlayerController: _controller);
     super.initState();
   }

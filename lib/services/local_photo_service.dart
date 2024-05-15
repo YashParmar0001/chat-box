@@ -21,6 +21,18 @@ class LocalPhotoService {
     return null;
   }
 
+  static Future<String?> getLocalVideoPath({required String chatKey, required int messageId,}) async {
+    final localFile = File(
+      '${(await getApplicationDocumentsDirectory()).path}/videos/$chatKey/'
+          '$messageId.mp4',
+    );
+
+    if (await localFile.exists()) {
+      return localFile.path;
+    }
+    return null;
+  }
+
   static Future<String> downloadAndCachePhoto({
     required String chatKey,
     required int messageId,
@@ -45,7 +57,24 @@ class LocalPhotoService {
     return path;
   }
 
-  static Future<void> deletePhoto(String path) async {
+  static Future<String> downloadAndCacheVideo({required String chatKey, required int messageId,}) async {
+    final path =
+        '${(await getApplicationDocumentsDirectory()).path}/videos/$chatKey/'
+        '$messageId.mp4';
+    final localFile = File(path);
+
+    if (!await localFile.exists()) {
+      final response = await FirebaseStorage.instance.ref('videos/$chatKey/$messageId',).getData();
+      if (response != null) {
+        await localFile.parent.create(recursive: true);
+        await localFile.writeAsBytes(response.toList());
+        dev.log('Video stored: $messageId', name: 'LocalStorage');
+      }
+    }
+    return path;
+  }
+
+  static Future<void> deleteFile(String path) async {
     final localFile = File(path);
 
     if (await localFile.exists()) {

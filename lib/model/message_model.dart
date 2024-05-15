@@ -10,6 +10,7 @@ class MessageModel {
   final String? videoUrl;
   final String? videoThumbnailUrl;
   String? localImagePath;
+  String? localVideoPath;
 
   MessageModel({
     // required this.messageId,
@@ -21,6 +22,7 @@ class MessageModel {
     this.videoUrl,
     this.videoThumbnailUrl,
     this.localImagePath,
+    this.localVideoPath,
   });
 
   int get timestamp => time.millisecondsSinceEpoch;
@@ -42,7 +44,7 @@ class MessageModel {
 
   @override
   String toString() {
-    return 'Message{text: $text, imagePath: $localImagePath}';
+    return 'Message{text: $text, videoPath: $localVideoPath, imagePath: $localImagePath}';
   }
 
   Map<String, dynamic> toMapTime() {
@@ -70,6 +72,7 @@ class MessageModel {
       'image_url': imageUrl,
       'local_image_uri': localImagePath,
       'video_url': videoUrl,
+      'local_video_uri': localVideoPath,
       'video_thumbnail_url': videoThumbnailUrl,
     };
   }
@@ -89,6 +92,8 @@ class MessageModel {
           map['video_thumbnail_url'] == '' ? null : map['video_thumbnail_url'],
       localImagePath:
           map['local_image_uri'] == '' ? null : map['local_image_uri'],
+      localVideoPath:
+          map['local_video_uri'] == '' ? null : map['local_video_uri'],
     );
   }
 
@@ -101,6 +106,7 @@ class MessageModel {
     String? videoUrl,
     String? videoThumbnailUrl,
     String? localImagePath,
+    String? localVideoPath,
   }) {
     return MessageModel(
       senderId: senderId ?? this.senderId,
@@ -111,6 +117,7 @@ class MessageModel {
       videoUrl: videoUrl ?? this.videoUrl,
       videoThumbnailUrl: videoThumbnailUrl ?? this.videoThumbnailUrl,
       localImagePath: localImagePath ?? this.localImagePath,
+      localVideoPath: localVideoPath ?? this.localVideoPath,
     );
   }
 }

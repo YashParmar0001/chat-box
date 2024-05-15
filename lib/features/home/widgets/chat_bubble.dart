@@ -156,7 +156,12 @@ class ChatBubble extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        Get.to(() => VideoPlayerScreen(videoUrl: message.videoUrl!));
+        Get.to(
+          () => VideoPlayerScreen(
+            videoUrl: message.videoUrl!,
+            localVideoPath: message.localVideoPath,
+          ),
+        );
       },
       child: (message.videoThumbnailUrl != null)
           ? CachedNetworkImage(

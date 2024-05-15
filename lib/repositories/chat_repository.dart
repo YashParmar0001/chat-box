@@ -143,12 +143,15 @@ class ChatRepository {
           'Deleting local image: ${message.localImagePath}',
           name: 'Image',
         );
-        await LocalPhotoService.deletePhoto(message.localImagePath!);
+        await LocalPhotoService.deleteFile(message.localImagePath!);
       }
       await _storage.ref('images/$chatKey/${message.timestamp}').delete();
     }
 
     if (message.videoUrl != null) {
+      if (message.localVideoPath != null) {
+        await LocalPhotoService.deleteFile(message.localVideoPath!);
+      }
       await _storage.ref('videos/$chatKey/${message.timestamp}').delete();
       if (message.videoThumbnailUrl != null) {
         await _storage

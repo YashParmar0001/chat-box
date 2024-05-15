@@ -26,7 +26,8 @@ class SqliteService {
           'image_url TEXT NULL, '
           'local_image_uri TEXT NULL, '
           'video_url TEXT NULL, '
-          'video_thumbnail_url TEXT NULL'
+          'video_thumbnail_url TEXT NULL, '
+          'local_video_uri TEXT NULL'
           ')',
         );
       },
@@ -50,11 +51,6 @@ class SqliteService {
     );
     dev.log('Local db messages: $response', name: 'Chat');
     return response.map((e) => MessageModel.fromMap(e)).toList();
-  }
-
-  Future<MessageModel?> getMessage(String id) async {
-    final db = await initializeDB();
-    final response = await db.query('messages', where: 'message_id = ?', whereArgs: [id],);
   }
 
   Future<int> storeMessage({
