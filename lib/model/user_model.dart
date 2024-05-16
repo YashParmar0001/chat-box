@@ -3,17 +3,19 @@ class UserModel {
   final String name;
   final String bio;
   final String? profilePicUrl;
+  final bool isOnline;
 
   const UserModel({
     required this.email,
     required this.name,
     required this.bio,
     this.profilePicUrl,
+    required this.isOnline,
   });
 
   @override
   String toString() {
-    return 'UserModel{ name: $name, bio: $bio, profilePicUrl: $profilePicUrl, email: $email}';
+    return 'UserModel{ isOnline: $isOnline, name: $name, bio: $bio, profilePicUrl: $profilePicUrl, email: $email}';
   }
 
   UserModel copyWith({
@@ -21,12 +23,14 @@ class UserModel {
     String? name,
     String? bio,
     String? profilePicUrl,
+    bool? isOnline,
   }) {
     return UserModel(
       email: email ?? this.email,
       name: name ?? this.name,
       bio: bio ?? this.bio,
       profilePicUrl: profilePicUrl ?? this.profilePicUrl,
+      isOnline: isOnline ?? this.isOnline,
     );
   }
 
@@ -36,6 +40,7 @@ class UserModel {
       'bio': bio,
       'profilePicUrl': profilePicUrl ?? '',
       'email': email,
+      'is_online': isOnline,
     };
   }
 
@@ -46,6 +51,7 @@ class UserModel {
       profilePicUrl:
           (map['profilePicUrl'] as String) == '' ? null : map['profilePicUrl'],
       email: map['email'] as String,
+      isOnline: map['is_online'] as bool,
     );
   }
 }

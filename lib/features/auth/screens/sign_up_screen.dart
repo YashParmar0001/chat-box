@@ -3,7 +3,6 @@ import 'package:chat_box/constants/string_constants.dart';
 import 'package:chat_box/controller/auth_controller.dart';
 import 'package:chat_box/core/ui/custom_text_field.dart';
 import 'package:chat_box/core/ui/primary_button.dart';
-import 'package:chat_box/features/auth/screens/login_screen.dart';
 import 'package:chat_box/generated/assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -144,7 +143,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        Get.off(() => const LogInScreen());
+                        Get.offNamed('/login');
                       },
                       child: Text(
                         'Log In',

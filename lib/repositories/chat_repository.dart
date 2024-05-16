@@ -63,6 +63,35 @@ class ChatRepository {
         .set(message.toMapTime());
   }
 
+  Future<void> changeMessageToDelivered(
+    String chatKey,
+    String messageId,
+  ) async {
+    await _firestore
+        .collection('chats')
+        .doc(chatKey)
+        .collection('messages')
+        .doc(messageId)
+        .update(
+      {
+        'is_delivered': true,
+      },
+    );
+  }
+
+  Future<void> changeMessageToRead(String chatKey, String messageId) async {
+    await _firestore
+        .collection('chats')
+        .doc(chatKey)
+        .collection('messages')
+        .doc(messageId)
+        .update(
+      {
+        'is_read': true,
+      },
+    );
+  }
+
   Future<String?> uploadImage({
     required String chatKey,
     required File image,

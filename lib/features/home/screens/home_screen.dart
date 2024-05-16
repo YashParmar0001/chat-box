@@ -62,16 +62,12 @@ class _Chat extends StatelessWidget {
     return InkWell(
       onTap: () => Get.to(
         () => ChatScreen(
-          user: user,
+          userId: user.email,
           chatController: Get.put(
             CurrentChatController(
               currentUserId: Get.find<AuthController>().email!,
               otherUserId: user.email,
             ),
-            // CurrentChatController(
-            //   currentUserId: Get.find<AuthController>().email!,
-            //   otherUserId: user.email,
-            // ),
           ),
         ),
       ),
@@ -81,40 +77,56 @@ class _Chat extends StatelessWidget {
           horizontal: 10,
         ),
         child: Row(
-          // crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CachedNetworkImage(
-              imageUrl: user.profilePicUrl ?? '',
-              placeholder: (context, url) {
-                return ClipOval(
-                  child: Image.asset(
-                    Assets.imagesUserProfile,
-                    fit: BoxFit.cover,
-                    width: 60,
-                    height: 60,
+            Stack(
+              children: [
+                CachedNetworkImage(
+                  imageUrl: user.profilePicUrl ?? '',
+                  placeholder: (context, url) {
+                    return ClipOval(
+                      child: Image.asset(
+                        Assets.imagesUserProfile,
+                        fit: BoxFit.cover,
+                        width: 60,
+                        height: 60,
+                      ),
+                    );
+                  },
+                  imageBuilder: (context, imageProvider) {
+                    return ClipOval(
+                      child: Image(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                        width: 60,
+                        height: 60,
+                      ),
+                    );
+                  },
+                  errorWidget: (context, url, error) {
+                    return ClipOval(
+                      child: Image.asset(
+                        Assets.imagesUserProfile,
+                        fit: BoxFit.cover,
+                        width: 60,
+                        height: 60,
+                      ),
+                    );
+                  },
+                ),
+                if (user.isOnline)
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 15,
+                      height: 15,
+                      decoration: const ShapeDecoration(
+                        shape: CircleBorder(),
+                        color: Colors.green,
+                      ),
+                    ),
                   ),
-                );
-              },
-              imageBuilder: (context, imageProvider) {
-                return ClipOval(
-                  child: Image(
-                    image: imageProvider,
-                    fit: BoxFit.cover,
-                    width: 60,
-                    height: 60,
-                  ),
-                );
-              },
-              errorWidget: (context, url, error) {
-                return ClipOval(
-                  child: Image.asset(
-                    Assets.imagesUserProfile,
-                    fit: BoxFit.cover,
-                    width: 60,
-                    height: 60,
-                  ),
-                );
-              },
+              ],
             ),
             const SizedBox(width: 10),
             Column(

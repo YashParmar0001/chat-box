@@ -2,11 +2,11 @@ import 'dart:developer' as dev;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_box/controller/auth_controller.dart';
+import 'package:chat_box/controller/chat_controller.dart';
 import 'package:chat_box/controller/current_chat_controller.dart';
 import 'package:chat_box/features/home/screens/user_profile_screen.dart';
 import 'package:chat_box/features/home/widgets/chat_bubble.dart';
 import 'package:chat_box/features/home/widgets/chat_input_field.dart';
-import 'package:chat_box/model/user_model.dart';
 import 'package:chat_box/utils/formatting_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -18,11 +18,11 @@ import '../../../model/message_model.dart';
 class ChatScreen extends StatefulWidget {
   const ChatScreen({
     super.key,
-    required this.user,
+    required this.userId,
     required this.chatController,
   });
 
-  final UserModel user;
+  final String userId;
   final CurrentChatController chatController;
 
   @override
@@ -55,53 +55,71 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: GestureDetector(
-          onTap: () => Get.to(() => UserProfileScreen(user: widget.user)),
-          child: Row(
-            children: [
-              CachedNetworkImage(
-                imageUrl: widget.user.profilePicUrl ?? '',
-                placeholder: (context, url) {
-                  return ClipOval(
-                    child: Image.asset(
-                      Assets.imagesUserProfile,
-                      fit: BoxFit.cover,
-                      width: 50,
-                      height: 50,
+        title: Obx(() {
+          final user = Get.find<ChatController>()
+              .users
+              .firstWhere((e) => e.email == widget.userId);
+          return GestureDetector(
+            onTap: () => Get.to(() => UserProfileScreen(user: user)),
+            child: Row(
+              children: [
+                CachedNetworkImage(
+                  imageUrl: user.profilePicUrl ?? '',
+                  placeholder: (context, url) {
+                    return ClipOval(
+                      child: Image.asset(
+                        Assets.imagesUserProfile,
+                        fit: BoxFit.cover,
+                        width: 50,
+                        height: 50,
+                      ),
+                    );
+                  },
+                  imageBuilder: (context, imageProvider) {
+                    return ClipOval(
+                      child: Image(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                        width: 50,
+                        height: 50,
+                      ),
+                    );
+                  },
+                  errorWidget: (context, url, error) {
+                    return ClipOval(
+                      child: Image.asset(
+                        Assets.imagesUserProfile,
+                        fit: BoxFit.cover,
+                        width: 50,
+                        height: 50,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user.name,
+                      style:
+                          Theme.of(context).textTheme.displayMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
                     ),
-                  );
-                },
-                imageBuilder: (context, imageProvider) {
-                  return ClipOval(
-                    child: Image(
-                      image: imageProvider,
-                      fit: BoxFit.cover,
-                      width: 50,
-                      height: 50,
-                    ),
-                  );
-                },
-                errorWidget: (context, url, error) {
-                  return ClipOval(
-                    child: Image.asset(
-                      Assets.imagesUserProfile,
-                      fit: BoxFit.cover,
-                      width: 50,
-                      height: 50,
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(width: 10),
-              Text(
-                widget.user.name,
-                style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-            ],
-          ),
-        ),
+                    if (user.isOnline)
+                      Text(
+                        'Online',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.black.withAlpha(150),
+                            ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }),
       ),
       body: Column(
         children: [

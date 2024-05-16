@@ -11,6 +11,8 @@ class MessageModel {
   final String? videoThumbnailUrl;
   String? localImagePath;
   String? localVideoPath;
+  final bool isRead;
+  final bool isDelivered;
 
   MessageModel({
     // required this.messageId,
@@ -23,6 +25,8 @@ class MessageModel {
     this.videoThumbnailUrl,
     this.localImagePath,
     this.localVideoPath,
+    required this.isRead,
+    required this.isDelivered,
   });
 
   int get timestamp => time.millisecondsSinceEpoch;
@@ -44,7 +48,7 @@ class MessageModel {
 
   @override
   String toString() {
-    return 'Message{text: $text, videoPath: $localVideoPath, imagePath: $localImagePath}';
+    return 'Message{text: $text, isRead: $isRead, isDelivered: $isDelivered}';
   }
 
   Map<String, dynamic> toMapTime() {
@@ -58,6 +62,8 @@ class MessageModel {
       // 'local_image_uri': localImagePath ?? '',
       'video_url': videoUrl ?? '',
       'video_thumbnail_url': videoThumbnailUrl ?? '',
+      'is_read': isRead,
+      'is_delivered' : isDelivered,
     };
   }
 
@@ -74,6 +80,8 @@ class MessageModel {
       'video_url': videoUrl,
       'local_video_uri': localVideoPath,
       'video_thumbnail_url': videoThumbnailUrl,
+      'is_read': isRead ? 1 : 0,
+      'is_delivered' : isDelivered ? 1 : 0,
     };
   }
 
@@ -94,6 +102,10 @@ class MessageModel {
           map['local_image_uri'] == '' ? null : map['local_image_uri'],
       localVideoPath:
           map['local_video_uri'] == '' ? null : map['local_video_uri'],
+      isRead: (map['is_read'] is bool)
+          ? map['is_read']
+          : ((map['is_read'] as int) == 0 ? false : true),
+      isDelivered: (map['is_delivered'] is bool) ? map['is_delivered'] : ((map['is_delivered'] as int) == 0 ? false : true)
     );
   }
 
@@ -107,6 +119,8 @@ class MessageModel {
     String? videoThumbnailUrl,
     String? localImagePath,
     String? localVideoPath,
+    bool? isRead,
+    bool? isDelivered,
   }) {
     return MessageModel(
       senderId: senderId ?? this.senderId,
@@ -118,6 +132,8 @@ class MessageModel {
       videoThumbnailUrl: videoThumbnailUrl ?? this.videoThumbnailUrl,
       localImagePath: localImagePath ?? this.localImagePath,
       localVideoPath: localVideoPath ?? this.localVideoPath,
+      isRead: isRead ?? this.isRead,
+      isDelivered: isDelivered ?? this.isDelivered,
     );
   }
 }

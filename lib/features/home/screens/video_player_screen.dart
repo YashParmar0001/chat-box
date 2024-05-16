@@ -57,7 +57,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             ? AspectRatio(
                 aspectRatio: _controller.value.aspectRatio,
                 child: Chewie(
-                  controller: _chewieController,
+                  controller: _chewieController..play(),
                 ),
               )
             : Column(

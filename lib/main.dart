@@ -1,5 +1,6 @@
 import 'package:chat_box/binding.dart';
 import 'package:chat_box/constants/app_theme.dart';
+import 'package:chat_box/features/auth/screens/create_profile_screen.dart';
 import 'package:chat_box/features/auth/screens/login_screen.dart';
 import 'package:chat_box/features/splash/splash_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -38,6 +39,10 @@ class MyApp extends StatelessWidget {
         GetPage(
           name: '/login',
           page: () => const LogInScreen(),
+        ),
+        GetPage(
+          name: '/create_profile',
+          page: () => const CreateProfileScreen(),
         ),
       ],
     );

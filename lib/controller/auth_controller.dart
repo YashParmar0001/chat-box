@@ -2,8 +2,6 @@ import 'dart:developer' as dev;
 
 import 'package:chat_box/controller/user_profile_controller.dart';
 import 'package:chat_box/core/ui/shell_screen.dart';
-import 'package:chat_box/features/auth/screens/create_profile_screen.dart';
-import 'package:chat_box/features/auth/screens/login_screen.dart';
 import 'package:chat_box/repositories/auth_repository.dart';
 import 'package:get/get.dart';
 
@@ -32,9 +30,12 @@ class AuthController extends GetxController {
       dev.log('Listen to auth states', name: 'Auth');
       if (!isAuthenticated) {
         dev.log('User logged out', name: 'Auth');
+        setUserState(false, email: email);
         _email.value = null;
         userProfileController.closeSubscriptions();
-        Get.off(() => const LogInScreen());
+        Get.offNamed('/login');
+      }else {
+        setUserState(true, email: email);
       }
     });
     final isAuthenticated = await checkIsAuthenticated();
@@ -55,7 +56,7 @@ class AuthController extends GetxController {
     if (result) {
       _isAuthenticated.value = true;
       _email.value = email;
-      Get.off(() => const CreateProfileScreen());
+      Get.offNamed('/create_profile');
       Get.snackbar('Sign Up', 'Successfully signed up!');
     } else {
       _isAuthenticated.value = false;
@@ -88,7 +89,7 @@ class AuthController extends GetxController {
       Get.snackbar('Log Out', 'Something went wrong!');
     }else {
       _isAuthenticated.value = false;
-      dev.log('Logged out user: ${_isAuthenticated.value}', name: 'Auth');
+      dev.log('Logged out user Email: $email', name: 'Auth');
     }
   }
 
@@ -98,5 +99,9 @@ class AuthController extends GetxController {
       _email.value = _authRepository.getEmail();
     }
     return _isAuthenticated.value;
+  }
+
+  void setUserState(bool isOnline, {String? email}) {
+    _authRepository.setUserState(isOnline, email: email);
   }
 }

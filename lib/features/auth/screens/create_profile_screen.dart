@@ -149,6 +149,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       name: nameController.text,
       bio: bioController.text,
       profilePicUrl: '',
+      isOnline: true,
     );
     userProfileController.createUserProfile(
       email: email,

@@ -165,6 +165,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       name: nameController.text,
       bio: bioController.text,
       profilePicUrl: oldProfileUrl,
+      isOnline: true,
     );
     dev.log('OldProfileUrl: $oldProfileUrl | Image: $_image', name: 'Profile');
     userProfileController.updateUserProfile(

@@ -8,6 +8,7 @@ import 'package:chat_box/generated/assets.dart';
 import 'package:chat_box/model/message_model.dart';
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -25,14 +26,12 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMediaMessage = message.imageUrl != null || message.videoUrl != null;
+
     return Align(
       alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
       child: GestureDetector(
-        onLongPress: () {
-          if (isCurrentUser) {
-            _showDeleteMessageDialog(context);
-          }
-        },
+        onLongPress: () => _showDeleteMessageDialog(context),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             vertical: 10,
@@ -63,22 +62,42 @@ class ChatBubble extends StatelessWidget {
                     bottomRight: const Radius.circular(12),
                   ),
                 ),
-                child: Builder(
-                  builder: (context) {
-                    if (message.imageUrl != null) {
-                      return _buildImage(context);
-                    } else if (message.videoUrl != null) {
-                      return _buildVideo(context);
-                    } else {
-                      return Text(
-                        message.text,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color:
-                                  isCurrentUser ? Colors.white : Colors.black,
-                            ),
-                      );
-                    }
-                  },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Stack(
+                      children: [
+                        Builder(
+                          builder: (context) {
+                            if (message.imageUrl != null) {
+                              return _buildImage(context);
+                            } else if (message.videoUrl != null) {
+                              return _buildVideo(context);
+                            } else {
+                              return Text(
+                                message.text,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: isCurrentUser
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
+                              );
+                            }
+                          },
+                        ),
+                        if (isCurrentUser && isMediaMessage) _buildTicks(),
+                      ],
+                    ),
+                    if (isCurrentUser && !isMediaMessage)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 10),
+                        child: _buildTicks(),
+                      ),
+                  ],
                 ),
               ),
               Padding(
@@ -96,6 +115,30 @@ class ChatBubble extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTicks() {
+    return Positioned(
+      right: 5,
+      bottom: 5,
+      child: Builder(
+        builder: (context) {
+          if (message.isRead || message.isDelivered) {
+            return SvgPicture.asset(
+              Assets.iconsDoubleTick,
+              width: 20,
+              color: message.isRead ? Colors.white : AppColors.grayX11,
+            );
+          } else {
+            return SvgPicture.asset(
+              Assets.iconsSingleTick,
+              width: 15,
+              color: AppColors.grayX11,
+            );
+          }
+        },
       ),
     );
   }
@@ -124,7 +167,6 @@ class ChatBubble extends StatelessWidget {
         fit: BoxFit.cover,
         height: 250,
         errorBuilder: (context, error, stackTrace) {
-          dev.log('Got error while loadin image: $error', name: 'LocalImage');
           return Image.asset(
             Assets.imagesPlaceholderImage,
             fit: BoxFit.cover,
@@ -198,7 +240,9 @@ class ChatBubble extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           title: const Text('Warning'),
-          content: const Text('Do you really want to delete this message?'),
+          content: const Text(
+            'Do you really want to un-send this message?',
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -208,7 +252,7 @@ class ChatBubble extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                Get.find<CurrentChatController>().deleteMessage(
+                Get.find<CurrentChatController>().unSendMessage(
                   message,
                 );
                 Get.back();

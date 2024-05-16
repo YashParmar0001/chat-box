@@ -5,7 +5,9 @@ class Assets {
   static const String artLogin = 'assets/art/login.svg';
   static const String artProfile = 'assets/art/profile.svg';
   static const String fontsPoppinsRegular = 'assets/fonts/Poppins-Regular.ttf';
+  static const String iconsDoubleTick = 'assets/icons/double_tick.svg';
   static const String iconsHome = 'assets/icons/home.svg';
+  static const String iconsSingleTick = 'assets/icons/single_tick.svg';
   static const String iconsUser = 'assets/icons/user.svg';
   static const String imagesPlaceholderImage = 'assets/images/placeholder-image.jpg';
   static const String imagesUserProfile = 'assets/images/user-profile.jpg';

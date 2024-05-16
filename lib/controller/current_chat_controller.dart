@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:io';
 
+import 'package:chat_box/controller/chat_controller.dart';
 import 'package:chat_box/model/message_model.dart';
 import 'package:chat_box/repositories/chat_repository.dart';
 import 'package:chat_box/services/local_photo_service.dart';
@@ -173,6 +174,12 @@ class CurrentChatController extends GetxController {
         for (var change in event.docChanges) {
           if (change.type == DocumentChangeType.added) {
             MessageModel message = MessageModel.fromMap(change.doc.data()!);
+            if (message.senderId != currentUserId && !message.isRead) {
+              chatRepository.changeMessageToRead(
+                chatKey,
+                message.timestamp.toString(),
+              );
+            }
 
             if (!_messages.contains(message)) {
               dev.log(
@@ -240,11 +247,19 @@ class CurrentChatController extends GetxController {
 
   Future<void> sendMessage() async {
     _isSendingMessage.value = true;
+
+    final isOnline = Get.find<ChatController>()
+        .users
+        .firstWhere((e) => e.email == otherUserId)
+        .isOnline;
+
     final message = MessageModel(
       senderId: currentUserId,
       receiverId: otherUserId,
       text: messageTextController.text.trim(),
       time: DateTime.now(),
+      isRead: otherUserId == currentUserId,
+      isDelivered: isOnline,
     );
 
     try {
@@ -267,7 +282,7 @@ class CurrentChatController extends GetxController {
     selectedVideo = null;
   }
 
-  Future<void> deleteMessage(MessageModel message) async {
+  Future<void> unSendMessage(MessageModel message) async {
     try {
       dev.log('Deleting this user message', name: 'Deletion');
       await sqliteService.deleteMessage(messageId: message.timestamp);

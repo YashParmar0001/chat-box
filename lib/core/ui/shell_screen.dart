@@ -1,8 +1,10 @@
+import 'package:chat_box/controller/auth_controller.dart';
 import 'package:chat_box/features/home/screens/home_screen.dart';
 import 'package:chat_box/features/profile/screens/my_profile_screen.dart';
 import 'package:chat_box/generated/assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 
 class ShellScreen extends StatefulWidget {
   const ShellScreen({super.key});
@@ -11,8 +13,44 @@ class ShellScreen extends StatefulWidget {
   State<ShellScreen> createState() => _ShellScreenState();
 }
 
-class _ShellScreenState extends State<ShellScreen> {
+class _ShellScreenState extends State<ShellScreen> with WidgetsBindingObserver {
   int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final authController = Get.find<AuthController>();
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        authController.setUserState(true);
+        break;
+      case AppLifecycleState.paused:
+        authController.setUserState(false);
+        break;
+      case AppLifecycleState.inactive:
+        authController.setUserState(false);
+        break;
+      case AppLifecycleState.detached:
+        authController.setUserState(false);
+        break;
+      case AppLifecycleState.hidden:
+        authController.setUserState(false);
+        break;
+    }
+    super.didChangeAppLifecycleState(state);
+  }
 
   @override
   Widget build(BuildContext context) {

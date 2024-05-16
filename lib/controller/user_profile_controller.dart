@@ -31,7 +31,10 @@ class UserProfileController extends GetxController {
   void onInit() {
     final worker = ever(_currentUserProfile, (user) {
       if (user != null) {
-        Get.off(() => const ShellScreen());
+        if (Get.currentRoute == '/create_profile' ||
+            Get.currentRoute == '/login') {
+          Get.off(() => const ShellScreen());
+        }
       }
     });
     super.onInit();

@@ -27,7 +27,9 @@ class SqliteService {
           'local_image_uri TEXT NULL, '
           'video_url TEXT NULL, '
           'video_thumbnail_url TEXT NULL, '
-          'local_video_uri TEXT NULL'
+          'local_video_uri TEXT NULL, '
+          'is_read INTEGER, '
+          'is_delivered INTEGER'
           ')',
         );
       },
