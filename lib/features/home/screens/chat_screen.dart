@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:chat_box/constants/colors.dart';
 import 'package:chat_box/controller/auth_controller.dart';
 import 'package:chat_box/controller/chat_controller.dart';
 import 'package:chat_box/controller/current_chat_controller.dart';
@@ -107,13 +108,29 @@ class _ChatScreenState extends State<ChatScreen> {
                                 fontWeight: FontWeight.w600,
                               ),
                     ),
-                    if (user.isOnline)
-                      Text(
-                        'Online',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.black.withAlpha(150),
-                            ),
-                      ),
+                    Obx(
+                      () {
+                        if (widget.chatController.isTyping) {
+                          return Text(
+                            'Typing...',
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppColors.tartOrange,
+                                    ),
+                          );
+                        } else if (user.isOnline) {
+                          return Text(
+                            'Online',
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Colors.black.withAlpha(150),
+                                    ),
+                          );
+                        } else {
+                          return const SizedBox();
+                        }
+                      },
+                    ),
                   ],
                 ),
               ],

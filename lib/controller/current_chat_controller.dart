@@ -40,6 +40,10 @@ class CurrentChatController extends GetxController {
   final String currentUserId;
   final String otherUserId;
 
+  final _isTyping = false.obs;
+
+  bool get isTyping => _isTyping.value;
+
   final _selectedImage = Rx<File?>(null);
 
   final _selectedVideo = Rx<File?>(null);
@@ -82,6 +86,9 @@ class CurrentChatController extends GetxController {
     return chatKey;
   }
 
+  StreamSubscription? typingStatusSubscription;
+  Timer? typingTimer;
+
   @override
   void onInit() {
     getMessages();
@@ -92,12 +99,19 @@ class CurrentChatController extends GetxController {
       } else {
         _sendButtonEnabled.value = true;
       }
+
+      chatRepository.changeTypingStatus(chatKey, currentUserId, true);
+      typingTimer?.cancel();
+      typingTimer = Timer(const Duration(seconds: 1), () {
+        chatRepository.changeTypingStatus(chatKey, currentUserId, false);
+      });
     });
 
-    ever(
-      _listeners,
-      (list) => dev.log('Listeners length: ${list.length}', name: 'Chat'),
-    );
+    listenToTypingStatus();
+
+    ever(_isTyping, (isTyping) {
+      dev.log('Typing: $isTyping', name: 'Typing');
+    });
     super.onInit();
   }
 
@@ -107,6 +121,15 @@ class CurrentChatController extends GetxController {
       element.cancel();
     }
     super.onClose();
+  }
+
+  void listenToTypingStatus() {
+    typingStatusSubscription =
+        chatRepository.getTypingStatus(chatKey, otherUserId).listen(
+      (isTyping) {
+        _isTyping.value = isTyping;
+      },
+    );
   }
 
   Future<void> getMessages() async {
@@ -189,10 +212,26 @@ class CurrentChatController extends GetxController {
               _messages.insert(0, message);
               // _messages.value = Set<MessageModel>.from(_messages).toList();
 
-              message = await processLocalImagePath(message);
-              message = await processLocalVideoPath(message);
+              final imagePath = await processLocalImagePath(message);
+              final videoPath = await processLocalVideoPath(message);
+
+              final existingMessageIndex = messages.indexWhere(
+                (msg) => msg.timestamp == message.timestamp,
+              );
+
+              message = messages[existingMessageIndex].copyWith(
+                localImagePath: imagePath,
+                localVideoPath: videoPath,
+              );
+              if (existingMessageIndex != -1) {
+                _messages[existingMessageIndex] = message;
+              }
 
               // Store message locally
+              dev.log(
+                'Storing message through doc changes: $message',
+                name: 'Read',
+              );
               sqliteService.storeMessage(message: message, chatKey: chatKey);
 
               if (message.localImagePath != null ||
@@ -209,11 +248,10 @@ class CurrentChatController extends GetxController {
           } else if (change.type == DocumentChangeType.modified) {
             dev.log('Message modified', name: 'Chat');
 
-            final messageModel = MessageModel.fromMap(change.doc.data()!);
+            MessageModel messageModel =
+                MessageModel.fromMap(change.doc.data()!);
             final existingMessageIndex = messages.indexWhere(
-              (message) =>
-                  message.timestamp.toString() ==
-                  messageModel.timestamp.toString(),
+              (message) => message.timestamp == messageModel.timestamp,
             );
 
             if (existingMessageIndex != -1) {
@@ -222,7 +260,8 @@ class CurrentChatController extends GetxController {
               _messages.add(messageModel);
             }
 
-            sqliteService.updateMessage(message: messageModel);
+            // sqliteService.updateMessage(message: messageModel);
+            sqliteService.updateMessage3(message: messageModel);
           } else if (change.type == DocumentChangeType.removed) {
             // dev.log(
             //   'Message deleted by ${change.doc.data()!['sender_id']}',
@@ -294,7 +333,8 @@ class CurrentChatController extends GetxController {
     }
   }
 
-  Future<MessageModel> processLocalImagePath(MessageModel message) async {
+  Future<String?> processLocalImagePath(MessageModel message) async {
+    String? imagePath;
     if (message.imageUrl != null) {
       final localPath = await LocalPhotoService.getLocalPhotoPath(
         chatKey: chatKey,
@@ -305,16 +345,17 @@ class CurrentChatController extends GetxController {
           chatKey: chatKey,
           messageId: message.timestamp,
         );
-        message = message.copyWith(localImagePath: path);
+        imagePath = path;
       } else {
-        message = message.copyWith(localImagePath: localPath);
+        imagePath = localPath;
       }
     }
 
-    return message;
+    return imagePath;
   }
 
-  Future<MessageModel> processLocalVideoPath(MessageModel message) async {
+  Future<String?> processLocalVideoPath(MessageModel message) async {
+    String? videoPath;
     if (message.videoUrl != null) {
       final localPath = await LocalPhotoService.getLocalVideoPath(
         chatKey: chatKey,
@@ -325,13 +366,13 @@ class CurrentChatController extends GetxController {
           chatKey: chatKey,
           messageId: message.timestamp,
         );
-        message = message.copyWith(localVideoPath: path);
+        videoPath = path;
       } else {
-        message = message.copyWith(localVideoPath: localPath);
+        videoPath = localPath;
       }
     }
 
-    return message;
+    return videoPath;
   }
 
   Future<void> synchronizeWithLocalDB(
@@ -367,6 +408,8 @@ class CurrentChatController extends GetxController {
     }
 
     for (final message in messagesToAddOrUpdate) {
+      dev.log('Storing message through synchronization: $message',
+          name: 'Read');
       await sqliteService.storeMessage(chatKey: chatKey, message: message);
     }
 
@@ -374,11 +417,17 @@ class CurrentChatController extends GetxController {
       final localMessage = localMessages.firstWhere(
         (e) => e.timestamp == message.timestamp,
       );
-      await sqliteService.updateMessage(
-        message: message.copyWith(
-          localImagePath: localMessage.localImagePath,
-        ),
+      await sqliteService.updateMessage2(
+        fields: ['local_image_uri', 'local_video_uri'],
+        values: [localMessage.localImagePath, localMessage.localVideoPath],
+        id: message.timestamp,
       );
+      // await sqliteService.updateMessage(
+      //   message: message.copyWith(
+      //     localImagePath: localMessage.localImagePath,
+      //     localVideoPath: localMessage.localVideoPath,
+      //   ),
+      // );
     }
 
     _messages.value = await sqliteService.getMessages(chatKey: chatKey);

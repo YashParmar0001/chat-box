@@ -89,12 +89,19 @@ class ChatBubble extends StatelessWidget {
                             }
                           },
                         ),
-                        if (isCurrentUser && isMediaMessage) _buildTicks(),
+                        if (isCurrentUser && isMediaMessage)
+                          Positioned(
+                            right: 5,
+                            bottom: 5,
+                            child: _buildTicks(),
+                          ),
                       ],
                     ),
                     if (isCurrentUser && !isMediaMessage)
                       Padding(
-                        padding: const EdgeInsets.only(left: 10),
+                        padding: const EdgeInsets.only(
+                          left: 10,
+                        ),
                         child: _buildTicks(),
                       ),
                   ],
@@ -120,26 +127,22 @@ class ChatBubble extends StatelessWidget {
   }
 
   Widget _buildTicks() {
-    return Positioned(
-      right: 5,
-      bottom: 5,
-      child: Builder(
-        builder: (context) {
-          if (message.isRead || message.isDelivered) {
-            return SvgPicture.asset(
-              Assets.iconsDoubleTick,
-              width: 20,
-              color: message.isRead ? Colors.white : AppColors.grayX11,
-            );
-          } else {
-            return SvgPicture.asset(
-              Assets.iconsSingleTick,
-              width: 15,
-              color: AppColors.grayX11,
-            );
-          }
-        },
-      ),
+    return Builder(
+      builder: (context) {
+        if (message.isRead || message.isDelivered) {
+          return SvgPicture.asset(
+            Assets.iconsDoubleTick,
+            width: 20,
+            color: message.isRead ? Colors.white : AppColors.grayX11,
+          );
+        } else {
+          return SvgPicture.asset(
+            Assets.iconsSingleTick,
+            width: 15,
+            color: AppColors.grayX11,
+          );
+        }
+      },
     );
   }
 
@@ -153,6 +156,12 @@ class ChatBubble extends StatelessWidget {
       imageProvider = NetworkImage(message.imageUrl!);
     }
 
+    final placeholder = Image.asset(
+      Assets.imagesPlaceholderImage,
+      fit: BoxFit.cover,
+      height: 150,
+    );
+
     return GestureDetector(
       onTap: () => showImageViewer(
         context,
@@ -165,14 +174,23 @@ class ChatBubble extends StatelessWidget {
       child: Image(
         image: imageProvider,
         fit: BoxFit.cover,
-        height: 250,
-        errorBuilder: (context, error, stackTrace) {
-          return Image.asset(
-            Assets.imagesPlaceholderImage,
-            fit: BoxFit.cover,
-            height: 250,
-          );
+        width: 150,
+        height: 150,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress != null &&
+              loadingProgress.expectedTotalBytes != null) {
+            final percentage = loadingProgress.cumulativeBytesLoaded /
+                loadingProgress.expectedTotalBytes!;
+            if (percentage == 1) {
+              return child;
+            }else {
+              return CircularProgressIndicator(value: percentage, color: Colors.white,);
+            }
+          }else {
+            return child;
+          }
         },
+        errorBuilder: (context, error, stackTrace) => placeholder,
       ),
     );
   }

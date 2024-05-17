@@ -59,6 +59,7 @@ class SqliteService {
     required MessageModel message,
     required String chatKey,
   }) async {
+    // dev.log('Storing message: $message');
     final data = message.toMapTimestamp();
     data['chat_id'] = chatKey;
     data['message_id'] = message.timestamp;
@@ -76,6 +77,38 @@ class SqliteService {
     required MessageModel message,
   }) async {
     final data = message.toMapTimestamp();
+
+    final db = await initializeDB();
+    final response = await db.update(
+      'messages',
+      data,
+      where: 'message_id = ?',
+      whereArgs: [message.timestamp],
+    );
+    return response;
+  }
+
+  Future<int> updateMessage2({
+    required List<String> fields,
+    required List<dynamic> values,
+    required int id,
+  }) async {
+    final data = <String, dynamic>{};
+    for (int i = 0; i < fields.length; i++) {
+      data.addAll({fields[i]: values[i]});
+    }
+    final db = await initializeDB();
+    final response = await db.update(
+      'messages',
+      data,
+      where: 'message_id = ?',
+      whereArgs: [id],
+    );
+    return response;
+  }
+
+  Future<int> updateMessage3({required MessageModel message}) async {
+    final data = message.toMapLocal();
 
     final db = await initializeDB();
     final response = await db.update(

@@ -92,6 +92,41 @@ class ChatRepository {
     );
   }
 
+  Future<void> changeTypingStatus(
+    String chatKey,
+    String userId,
+    bool status,
+  ) async {
+    await _firestore
+        .collection('chats')
+        .doc(chatKey)
+        .collection('typing_status')
+        .doc(userId)
+        .set(
+      {
+        'is_typing': status,
+      },
+    );
+  }
+
+  Stream<bool> getTypingStatus(String chatKey, String userId) {
+    return _firestore
+        .collection('chats')
+        .doc(chatKey)
+        .collection('typing_status')
+        .doc(userId)
+        .snapshots()
+        .map((e) {
+      final data = e.data();
+      dev.log('Got snapshot: $data', name: 'Typing');
+      if (data != null) {
+        return data['is_typing'] as bool;
+      } else {
+        return false;
+      }
+    });
+  }
+
   Future<String?> uploadImage({
     required String chatKey,
     required File image,

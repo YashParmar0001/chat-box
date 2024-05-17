@@ -63,7 +63,7 @@ class MessageModel {
       'video_url': videoUrl ?? '',
       'video_thumbnail_url': videoThumbnailUrl ?? '',
       'is_read': isRead,
-      'is_delivered' : isDelivered,
+      'is_delivered': isDelivered,
     };
   }
 
@@ -81,7 +81,21 @@ class MessageModel {
       'local_video_uri': localVideoPath,
       'video_thumbnail_url': videoThumbnailUrl,
       'is_read': isRead ? 1 : 0,
-      'is_delivered' : isDelivered ? 1 : 0,
+      'is_delivered': isDelivered ? 1 : 0,
+    };
+  }
+
+  Map<String, dynamic> toMapLocal() {
+    return {
+      'sender_id': senderId,
+      'receiver_id': receiverId,
+      'content': text,
+      'timestamp': timestamp,
+      'image_url': imageUrl,
+      'video_url': videoUrl,
+      'video_thumbnail_url': videoThumbnailUrl,
+      'is_read': isRead ? 1 : 0,
+      'is_delivered': isDelivered ? 1 : 0,
     };
   }
 
@@ -105,7 +119,9 @@ class MessageModel {
       isRead: (map['is_read'] is bool)
           ? map['is_read']
           : ((map['is_read'] as int) == 0 ? false : true),
-      isDelivered: (map['is_delivered'] is bool) ? map['is_delivered'] : ((map['is_delivered'] as int) == 0 ? false : true)
+      isDelivered: (map['is_delivered'] is bool)
+          ? map['is_delivered']
+          : ((map['is_delivered'] as int) == 0 ? false : true),
     );
   }
 
