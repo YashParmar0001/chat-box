@@ -1,42 +1,45 @@
 import 'dart:developer' as dev;
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chat_box/constants/colors.dart';
-import 'package:chat_box/controller/auth_controller.dart';
 import 'package:chat_box/controller/chat_controller.dart';
-import 'package:chat_box/controller/current_chat_controller.dart';
-import 'package:chat_box/features/home/screens/user_profile_screen.dart';
-import 'package:chat_box/features/home/widgets/chat_bubble.dart';
-import 'package:chat_box/features/home/widgets/chat_input_field.dart';
-import 'package:chat_box/utils/formatting_utils.dart';
+import 'package:chat_box/controller/current_group_controller.dart';
+import 'package:chat_box/controller/groups_controller.dart';
+import 'package:chat_box/features/groups/screens/group_details_screen.dart';
+import 'package:chat_box/features/groups/widgets/group_chat_bubble.dart';
+import 'package:chat_box/features/groups/widgets/group_chat_input_field.dart';
+import 'package:chat_box/model/group_message_model.dart';
+import 'package:chat_box/model/group_typing_status.dart';
+import 'package:chat_box/model/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 
+import '../../../constants/colors.dart';
+import '../../../controller/auth_controller.dart';
 import '../../../generated/assets.dart';
-import '../../../model/message_model.dart';
+import '../../../utils/formatting_utils.dart';
 
-class ChatScreen extends StatefulWidget {
-  const ChatScreen({
+class GroupChatScreen extends StatefulWidget {
+  const GroupChatScreen({
     super.key,
     required this.userId,
-    required this.chatController,
+    required this.groupChatController,
   });
 
   final String userId;
-  final CurrentChatController chatController;
+  final CurrentGroupController groupChatController;
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  State<GroupChatScreen> createState() => _GroupChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _GroupChatScreenState extends State<GroupChatScreen> {
   final scrollController = ScrollController();
 
   @override
   void initState() {
     scrollController.addListener(() {
-      if (widget.chatController.isLoadingMessages) return;
+      if (widget.groupChatController.isLoadingMessages) return;
 
       final maxScroll = scrollController.position.maxScrollExtent;
       final currentScroll = scrollController.position.pixels;
@@ -44,8 +47,9 @@ class _ChatScreenState extends State<ChatScreen> {
       if (maxScroll - currentScroll <= 100 &&
           scrollController.position.userScrollDirection ==
               ScrollDirection.reverse) {
-        if (!widget.chatController.atMaxLimit) {
-          widget.chatController.getMoreMessages();
+        if (!widget.groupChatController.atMaxLimit &&
+            !widget.groupChatController.isLoadingMessages) {
+          widget.groupChatController.getMoreMessages();
         }
       }
     });
@@ -57,19 +61,36 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Obx(() {
-          final user = Get.find<ChatController>()
-              .users
-              .firstWhere((e) => e.email == widget.userId);
+          final groupsController = Get.find<GroupsController>();
+          final group = groupsController.groups
+              .firstWhere((e) => e.id == widget.groupChatController.groupId);
+          final typingStatuses = widget.groupChatController.typingStatuses
+              .where(
+                (e) => e.isTyping == true,
+              )
+              .toList();
+          final users = Get.find<ChatController>().users;
+          final onlineUsers = users
+              .where((e) => e.isOnline && group.memberIds.contains(e.email))
+              .length;
+
+          final typingUser = typingStatuses.isNotEmpty
+              ? users.firstWhere((e) => e.email == typingStatuses.first.userId)
+              : null;
           return GestureDetector(
-            onTap: () => Get.to(() => UserProfileScreen(user: user)),
+            onTap: () => Get.to(
+              () => GroupDetailsScreen(
+                groupController: widget.groupChatController,
+              ),
+            ),
             child: Row(
               children: [
                 CachedNetworkImage(
-                  imageUrl: user.profilePicUrl ?? '',
+                  imageUrl: group.groupProfilePicUrl ?? '',
                   placeholder: (context, url) {
                     return ClipOval(
                       child: Image.asset(
-                        Assets.imagesUserProfile,
+                        Assets.imagesUserGroup,
                         fit: BoxFit.cover,
                         width: 50,
                         height: 50,
@@ -102,35 +123,29 @@ class _ChatScreenState extends State<ChatScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      user.name,
+                      group.name,
                       style:
                           Theme.of(context).textTheme.displayMedium?.copyWith(
                                 fontWeight: FontWeight.w600,
                               ),
                     ),
-                    Obx(
-                      () {
-                        if (widget.chatController.isTyping) {
-                          return Text(
-                            'Typing...',
+                    (typingUser != null)
+                        ? Text(
+                            '${typingUser.name} is typing...',
                             style:
                                 Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: AppColors.myrtleGreen,
                                     ),
-                          );
-                        } else if (user.isOnline) {
-                          return Text(
-                            'Online',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Colors.black.withAlpha(150),
-                                    ),
-                          );
-                        } else {
-                          return const SizedBox();
-                        }
-                      },
-                    ),
+                          )
+                        : Text(
+                            '${group.memberIds.length} Members, $onlineUsers Online',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
+                                  color: Colors.black.withOpacity(0.7),
+                                ),
+                          ),
                   ],
                 ),
               ],
@@ -143,7 +158,7 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: Obx(
               () {
-                final list = widget.chatController.messages;
+                final list = widget.groupChatController.messages;
                 dev.log('Updated messages: $list', name: 'Chat');
                 return Stack(
                   children: [
@@ -155,7 +170,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         return _buildMessageSections(context, index);
                       },
                     ),
-                    if (widget.chatController.isLoadingMessages)
+                    if (widget.groupChatController.isLoadingMessages)
                       const Positioned.fill(
                         child: Center(
                           child: CircularProgressIndicator(),
@@ -166,8 +181,8 @@ class _ChatScreenState extends State<ChatScreen> {
               },
             ),
           ),
-          ChatInputField(chatController: widget.chatController),
-          const SizedBox(height: 10),
+          GroupChatInputField(chatController: widget.groupChatController),
+          // const SizedBox(height: 20),
         ],
       ),
     );
@@ -175,7 +190,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildMessageSections(BuildContext context, int sectionIndex) {
     final sectionMessages = _getSectionMessages(
-      widget.chatController.messages,
+      widget.groupChatController.messages,
       sectionIndex,
     );
 
@@ -201,10 +216,26 @@ class _ChatScreenState extends State<ChatScreen> {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: sectionMessages.length,
           itemBuilder: (context, index) {
-            return ChatBubble(
-              message: sectionMessages[index],
-              isCurrentUser: Get.find<AuthController>().email ==
-                  sectionMessages[index].senderId,
+            final message = sectionMessages[index];
+            final isCurrentUser =
+                Get.find<AuthController>().email == message.senderId;
+
+            return Obx(
+              () => GroupChatBubble(
+                message: sectionMessages[index],
+                isCurrentUser: isCurrentUser,
+                user: Get.find<ChatController>().users.firstWhere(
+                  (e) => e.email == message.senderId,
+                  orElse: () {
+                    return const UserModel(
+                      email: '',
+                      name: 'Unknown',
+                      bio: '',
+                      isOnline: false,
+                    );
+                  },
+                ),
+              ),
             );
           },
         ),
@@ -212,7 +243,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  int _calculateSectionCount(List<MessageModel> messages) {
+  int _calculateSectionCount(List<GroupMessageModel> messages) {
     Set<DateTime> dates = {};
     for (var message in messages) {
       dates.add(
@@ -226,8 +257,8 @@ class _ChatScreenState extends State<ChatScreen> {
     return dates.length;
   }
 
-  List<MessageModel> _getSectionMessages(
-    List<MessageModel> messages,
+  List<GroupMessageModel> _getSectionMessages(
+    List<GroupMessageModel> messages,
     int sectionIndex,
   ) {
     Set<DateTime> dates = {};

@@ -68,7 +68,7 @@ class _LogInScreenState extends State<LogInScreen> {
                               .displayMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.tartOrange,
+                                color: AppColors.myrtleGreen,
                               ),
                         ),
                       ],
@@ -78,7 +78,6 @@ class _LogInScreenState extends State<LogInScreen> {
                       StringConstants.logInDescription,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Colors.grey,
-                            fontFamily: 'Poppins',
                           ),
                     ),
                   ],
@@ -100,9 +99,9 @@ class _LogInScreenState extends State<LogInScreen> {
                 Obx(() {
                   if (authController.isLoggingIn) {
                     return const CircularProgressIndicator(
-                      color: AppColors.tartOrange,
+                      color: AppColors.myrtleGreen,
                     );
-                  }else {
+                  } else {
                     return Column(
                       children: [
                         PrimaryButton(
@@ -128,10 +127,12 @@ class _LogInScreenState extends State<LogInScreen> {
                               },
                               child: Text(
                                 'Sign Up',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontFamily: 'Poppins',
-                                  color: AppColors.tartOrange,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: AppColors.myrtleGreen,
+                                    ),
                               ),
                             ),
                           ],

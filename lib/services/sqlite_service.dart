@@ -1,5 +1,6 @@
 import 'dart:developer' as dev;
 
+import 'package:chat_box/model/group_message_model.dart';
 import 'package:chat_box/model/message_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -32,6 +33,20 @@ class SqliteService {
           'is_delivered INTEGER'
           ')',
         );
+        db.execute(
+          'create table group_messages ('
+          'message_id INTEGER PRIMARY KEY, '
+          'sender_id TEXT, '
+          'group_id TEXT, '
+          'content TEXT, '
+          'timestamp INTEGER, '
+          'image_url TEXT NULL, '
+          'local_image_path TEXT NULL, '
+          'video_url TEXT NULL, '
+          'video_thumbnail_url TEXT NULL, '
+          'local_video_path TEXT NULL'
+          ')',
+        );
       },
     );
   }
@@ -55,6 +70,24 @@ class SqliteService {
     return response.map((e) => MessageModel.fromMap(e)).toList();
   }
 
+  Future<List<GroupMessageModel>> getGroupMessages({
+    required String groupKey,
+    int page = 0,
+  }) async {
+    dev.log('Fetching messages for Page: $page', name: 'LocalStorage');
+    final db = await initializeDB();
+    final offset = page * _messageLimit;
+    final response = await db.query(
+      'group_messages',
+      orderBy: 'timestamp desc',
+      where: 'group_id = ?',
+      whereArgs: [groupKey],
+      offset: offset,
+      limit: _messageLimit,
+    );
+    return response.map((e) => GroupMessageModel.fromMap(e)).toList();
+  }
+
   Future<int> storeMessage({
     required MessageModel message,
     required String chatKey,
@@ -73,6 +106,22 @@ class SqliteService {
     return response;
   }
 
+  Future<int> storeGroupMessage({
+    required GroupMessageModel message,
+    required String groupKey,
+  }) async {
+    final data = message.toMapTimestamp();
+    data['message_id'] = message.timestamp;
+
+    final db = await initializeDB();
+    final response = await db.insert(
+      'group_messages',
+      data,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    return response;
+  }
+
   Future<int> updateMessage({
     required MessageModel message,
   }) async {
@@ -81,6 +130,19 @@ class SqliteService {
     final db = await initializeDB();
     final response = await db.update(
       'messages',
+      data,
+      where: 'message_id = ?',
+      whereArgs: [message.timestamp],
+    );
+    return response;
+  }
+
+  Future<int> updateGroupMessage({required GroupMessageModel message}) async {
+    final data = message.toMapTimestamp();
+
+    final db = await initializeDB();
+    final response = await db.update(
+      'group_messages',
       data,
       where: 'message_id = ?',
       whereArgs: [message.timestamp],
@@ -125,6 +187,16 @@ class SqliteService {
     final db = await initializeDB();
     final response = await db.delete(
       'messages',
+      where: 'message_id = ?',
+      whereArgs: [messageId],
+    );
+    return response;
+  }
+
+  Future<int> deleteGroupMessage({required int messageId}) async {
+    final db = await initializeDB();
+    final response = await db.delete(
+      'group_messages',
       where: 'message_id = ?',
       whereArgs: [messageId],
     );

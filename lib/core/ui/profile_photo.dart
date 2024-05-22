@@ -4,15 +4,16 @@ import 'package:flutter/material.dart';
 import '../../generated/assets.dart';
 
 class ProfilePhoto extends StatelessWidget {
-  const ProfilePhoto({super.key, this.url});
+  const ProfilePhoto({super.key, this.url, this.dimension = 140});
 
   final String? url;
+  final double dimension;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 140,
-      height: 140,
+      width: dimension,
+      height: dimension,
       decoration: const ShapeDecoration(
         shape: CircleBorder(),
         shadows: [

@@ -1,6 +1,9 @@
+import 'package:chat_box/controller/chat_controller.dart';
+import 'package:chat_box/controller/user_profile_controller.dart';
 import 'package:chat_box/core/ui/profile_photo.dart';
 import 'package:chat_box/model/user_model.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../constants/colors.dart';
 
@@ -11,7 +14,7 @@ class UserProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-   return Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: Text(
           'Profile',
@@ -19,6 +22,28 @@ class UserProfileScreen extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
         ),
+        actions: [
+          PopupMenuButton<String>(
+            itemBuilder: (context) {
+              final currentUser =
+                  Get.find<UserProfileController>().currentUserProfile!;
+              final isBlocked = currentUser.blockedUsers.contains(user.email);
+              return [
+                PopupMenuItem(
+                  onTap: () {
+                    final chatController = Get.find<ChatController>();
+                    if (isBlocked) {
+                      chatController.unblockUser(user.email);
+                    } else {
+                      chatController.blockUser(user.email);
+                    }
+                  },
+                  child: Text(isBlocked ? 'Unblock User' : 'Block User'),
+                ),
+              ];
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(
@@ -66,7 +91,7 @@ class UserProfileScreen extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                color: AppColors.tartOrange,
+                color: AppColors.myrtleGreen,
                 fontFamily: 'Poppins',
               ),
         ),

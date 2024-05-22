@@ -6,7 +6,7 @@ import 'colors.dart';
 class AppTheme {
   static ThemeData getTheme() {
     return ThemeData(
-      primaryColor: AppColors.tartOrange,
+      primaryColor: AppColors.myrtleGreen,
       textTheme: const TextTheme(
         displayLarge: AppTexts.displayLarge,
         displayMedium: AppTexts.displayMedium,

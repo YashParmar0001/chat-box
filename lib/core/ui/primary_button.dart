@@ -18,7 +18,7 @@ class PrimaryButton extends StatelessWidget {
       child: Container(
         width: double.infinity,
         decoration: ShapeDecoration(
-          color: AppColors.tartOrange,
+          color: AppColors.myrtleGreen,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),

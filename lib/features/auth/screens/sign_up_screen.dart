@@ -68,7 +68,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               .displayMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.tartOrange,
+                                color: AppColors.myrtleGreen,
                               ),
                         ),
                       ],
@@ -78,7 +78,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       StringConstants.signUpDescription,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Colors.grey,
-                            fontFamily: 'Poppins',
                           ),
                     ),
                   ],
@@ -107,9 +106,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 Obx(() {
                   if (authController.isSigningUp) {
                     return const CircularProgressIndicator(
-                      color: AppColors.tartOrange,
+                      color: AppColors.myrtleGreen,
                     );
-                  }else {
+                  } else {
                     return Column(
                       children: [
                         PrimaryButton(
@@ -148,8 +147,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       child: Text(
                         'Log In',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontFamily: 'Poppins',
-                              color: AppColors.tartOrange,
+                              color: AppColors.myrtleGreen,
                             ),
                       ),
                     ),

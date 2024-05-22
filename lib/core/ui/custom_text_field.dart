@@ -28,22 +28,21 @@ class CustomTextField extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColors.tartOrange,
-                fontFamily: 'Poppins',
+                color: AppColors.myrtleGreen,
               ),
         ),
         TextField(
           controller: controller,
           decoration: const InputDecoration(
             focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: AppColors.tartOrange),
+              borderSide: BorderSide(color: AppColors.myrtleGreen),
             ),
             contentPadding: EdgeInsets.symmetric(
               horizontal: 0,
               vertical: 0,
             ),
           ),
-          cursorColor: AppColors.tartOrange,
+          cursorColor: AppColors.myrtleGreen,
           style: Theme.of(context).textTheme.headlineSmall,
           obscureText: obscureText,
           keyboardType: keyboardType,

@@ -7,6 +7,7 @@ import 'package:chat_box/features/home/screens/video_player_screen.dart';
 import 'package:chat_box/generated/assets.dart';
 import 'package:chat_box/model/message_model.dart';
 import 'package:easy_image_viewer/easy_image_viewer.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -31,7 +32,11 @@ class ChatBubble extends StatelessWidget {
     return Align(
       alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
       child: GestureDetector(
-        onLongPress: () => _showDeleteMessageDialog(context),
+        onLongPress: () {
+          if (isCurrentUser) {
+            _showDeleteMessageDialog(context);
+          }
+        },
         child: Padding(
           padding: const EdgeInsets.symmetric(
             vertical: 10,
@@ -54,7 +59,7 @@ class ChatBubble extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color:
-                      isCurrentUser ? AppColors.tartOrange : AppColors.grayX11,
+                      isCurrentUser ? AppColors.myrtleGreen : AppColors.grayX11,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(isCurrentUser ? 12 : 0),
                     topRight: Radius.circular(isCurrentUser ? 0 : 12),
@@ -66,36 +71,39 @@ class ChatBubble extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Stack(
-                      children: [
-                        Builder(
-                          builder: (context) {
-                            if (message.imageUrl != null) {
-                              return _buildImage(context);
-                            } else if (message.videoUrl != null) {
-                              return _buildVideo(context);
-                            } else {
-                              return Text(
-                                message.text,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: isCurrentUser
-                                          ? Colors.white
-                                          : Colors.black,
-                                    ),
-                              );
-                            }
-                          },
-                        ),
-                        if (isCurrentUser && isMediaMessage)
-                          Positioned(
-                            right: 5,
-                            bottom: 5,
-                            child: _buildTicks(),
+                    Flexible(
+                      child: Stack(
+                        children: [
+                          Builder(
+                            builder: (context) {
+                              if (message.imageUrl != null) {
+                                return _buildImage(context);
+                              } else if (message.videoUrl != null) {
+                                return _buildVideo(context);
+                              } else {
+                                return Text(
+                                  message.text,
+                                  maxLines: 10,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color: isCurrentUser
+                                            ? Colors.white
+                                            : Colors.black,
+                                      ),
+                                );
+                              }
+                            },
                           ),
-                      ],
+                          if (isCurrentUser && isMediaMessage)
+                            Positioned(
+                              right: 5,
+                              bottom: 5,
+                              child: _buildTicks(),
+                            ),
+                        ],
+                      ),
                     ),
                     if (isCurrentUser && !isMediaMessage)
                       Padding(
@@ -201,7 +209,7 @@ class ChatBubble extends StatelessWidget {
       children: [
         Icon(
           Icons.video_camera_back_outlined,
-          color: isCurrentUser ? Colors.white : AppColors.tartOrange,
+          color: isCurrentUser ? Colors.white : AppColors.myrtleGreen,
         ),
         const SizedBox(width: 10),
         Text(

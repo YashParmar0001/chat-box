@@ -63,7 +63,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const CircularProgressIndicator(color: AppColors.tartOrange),
+                  const CircularProgressIndicator(color: AppColors.myrtleGreen),
                   Text(
                     'Please wait',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(

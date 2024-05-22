@@ -1,5 +1,6 @@
 import 'dart:developer' as dev;
 
+import 'package:chat_box/controller/groups_controller.dart';
 import 'package:chat_box/controller/user_profile_controller.dart';
 import 'package:chat_box/core/ui/shell_screen.dart';
 import 'package:chat_box/repositories/auth_repository.dart';
@@ -25,7 +26,8 @@ class AuthController extends GetxController {
   @override
   Future<void> onInit() async {
     final userProfileController = Get.put(UserProfileController());
-    // final userProfileController = Get.find<UserProfileController>();
+    final groupsController = Get.put(GroupsController());
+
     ever(_isAuthenticated, (isAuthenticated) {
       dev.log('Listen to auth states', name: 'Auth');
       if (!isAuthenticated) {
@@ -33,14 +35,19 @@ class AuthController extends GetxController {
         setUserState(false, email: email);
         _email.value = null;
         userProfileController.closeSubscriptions();
+        groupsController.closeSubscriptions();
         Get.offNamed('/login');
-      }else {
+      } else {
         setUserState(true, email: email);
+        if (email != null) {
+          groupsController.getGroups();
+        }
       }
     });
     final isAuthenticated = await checkIsAuthenticated();
     if (isAuthenticated) {
       userProfileController.getUserProfile(email!);
+      groupsController.getGroups();
       Get.off(() => const ShellScreen());
     }
     super.onInit();
@@ -74,10 +81,11 @@ class AuthController extends GetxController {
     if (!result) {
       Get.snackbar('Sign Up', 'Something went wrong!');
       _isAuthenticated.value = false;
-    }else {
+    } else {
       _isAuthenticated.value = true;
       _email.value = email;
       Get.find<UserProfileController>().getUserProfile(email);
+      Get.find<GroupsController>().getGroups();
       Get.off(() => const ShellScreen());
     }
     _isLoggingIn.value = false;
@@ -87,7 +95,7 @@ class AuthController extends GetxController {
     final result = await _authRepository.logout();
     if (!result) {
       Get.snackbar('Log Out', 'Something went wrong!');
-    }else {
+    } else {
       _isAuthenticated.value = false;
       dev.log('Logged out user Email: $email', name: 'Auth');
     }

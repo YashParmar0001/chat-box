@@ -1,18 +1,20 @@
 import 'dart:io';
 
+import 'package:chat_box/controller/auth_controller.dart';
 import 'package:chat_box/controller/current_chat_controller.dart';
-import 'package:chat_box/generated/assets.dart';
+import 'package:chat_box/controller/current_group_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../constants/colors.dart';
+import '../../../generated/assets.dart';
 
-class ChatInputField extends StatelessWidget {
-  const ChatInputField({super.key, required this.chatController});
+class GroupChatInputField extends StatelessWidget {
+  const GroupChatInputField({super.key, required this.chatController});
 
-  final CurrentChatController chatController;
+  final CurrentGroupController chatController;
 
   @override
   Widget build(BuildContext context) {
@@ -21,83 +23,96 @@ class ChatInputField extends StatelessWidget {
         horizontal: 10,
         vertical: 5,
       ),
-      child: Row(
-        // crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InkWell(
-            onTap: () => _showMediaOptions(context),
-            borderRadius: BorderRadius.circular(15),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 5,
-                vertical: 5,
-              ),
-              child: SvgPicture.asset(
-                Assets.iconsAttachment,
-                width: 30,
-              ),
-            ),
-          ),
-          const SizedBox(width: 5),
-          Expanded(
-            child: Container(
-              decoration: ShapeDecoration(
-                color: AppColors.myrtleGreen.withAlpha(30),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+      child: Obx(() {
+        final userId = Get.find<AuthController>().email;
+        final isGroupMember = chatController.group?.memberIds.contains(userId);
+
+        if (!(isGroupMember ?? false)) {
+          return Text(
+            'You can no longer send messages to this group!',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.headlineMedium,
+          );
+        } else {
+          return Row(
+            // crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InkWell(
+                onTap: () => _showMediaOptions(context),
+                borderRadius: BorderRadius.circular(15),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 5,
+                  ),
+                  child: SvgPicture.asset(
+                    Assets.iconsAttachment,
+                    width: 30,
+                  ),
                 ),
               ),
-              child: TextField(
-                // textAlignVertical: TextAlignVertical.top,
-                minLines: 1,
-                maxLines: 5,
-                controller: chatController.messageTextController,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.only(
-                    left: 10,
-                    bottom: 5,
-                    right: 10,
+              const SizedBox(width: 5),
+              Expanded(
+                child: Container(
+                  decoration: ShapeDecoration(
+                    color: AppColors.myrtleGreen.withAlpha(30),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  hintText: 'Write your message',
-                  hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  child: TextField(
+                    // textAlignVertical: TextAlignVertical.top,
+                    minLines: 1,
+                    maxLines: 5,
+                    controller: chatController.messageTextController,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.only(
+                        left: 10,
+                        bottom: 5,
+                        right: 10,
+                      ),
+                      hintText: 'Write your message',
+                      hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Colors.black.withOpacity(0.5),
                         fontFamily: 'Caros',
                       ),
+                    ),
+                    textCapitalization: TextCapitalization.sentences,
+                    onSubmitted: (value) {
+                      if (value.isNotEmpty || value != '') sendMessage();
+                    },
+                  ),
                 ),
-                textCapitalization: TextCapitalization.sentences,
-                onSubmitted: (value) {
-                  if (value.isNotEmpty || value != '') sendMessage();
+              ),
+              const SizedBox(width: 10),
+              Obx(
+                    () {
+                  if (chatController.isSendingMessage) {
+                    return const CircularProgressIndicator(
+                      color: AppColors.myrtleGreen,
+                    );
+                  }
+                  final enabled = chatController.sendButtonEnabled;
+                  return GestureDetector(
+                    onTap: () {
+                      if (enabled) sendMessage();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: ShapeDecoration(
+                        shape: const CircleBorder(),
+                        color: enabled ? AppColors.myrtleGreen : Colors.grey,
+                      ),
+                      child: SvgPicture.asset(Assets.iconsSend),
+                    ),
+                  );
                 },
               ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Obx(
-            () {
-              if (chatController.isSendingMessage) {
-                return const CircularProgressIndicator(
-                  color: AppColors.myrtleGreen,
-                );
-              }
-              final enabled = chatController.sendButtonEnabled;
-              return GestureDetector(
-                onTap: () {
-                  if (enabled) sendMessage();
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: ShapeDecoration(
-                    shape: const CircleBorder(),
-                    color: enabled ? AppColors.myrtleGreen : Colors.grey,
-                  ),
-                  child: SvgPicture.asset(Assets.iconsSend),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
+            ],
+          );
+        }
+      }),
     );
   }
 
@@ -200,8 +215,8 @@ class ChatInputField extends StatelessWidget {
                 Text(
                   description,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.black.withOpacity(0.6),
-                      ),
+                    color: Colors.black.withOpacity(0.6),
+                  ),
                 ),
               ],
             ),
@@ -257,7 +272,7 @@ class ChatInputField extends StatelessWidget {
                   TextButton(
                     onPressed: () {
                       Get.back();
-                      chatController.selectedImage = null;
+                      // chatController.selectedImage = null;
                     },
                     child: const Text('Cancel'),
                   ),

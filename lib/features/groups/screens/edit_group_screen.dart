@@ -1,46 +1,42 @@
 import 'dart:io';
-import 'dart:developer' as dev;
 
 import 'package:chat_box/constants/colors.dart';
-import 'package:chat_box/controller/auth_controller.dart';
-import 'package:chat_box/controller/user_profile_controller.dart';
+import 'package:chat_box/controller/groups_controller.dart';
 import 'package:chat_box/core/ui/custom_text_field.dart';
 import 'package:chat_box/core/ui/primary_button.dart';
 import 'package:chat_box/generated/assets.dart';
-import 'package:chat_box/model/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
-class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key, required this.user});
+import '../../../model/group_model.dart';
 
-  final UserModel user;
+class EditGroupScreen extends StatefulWidget {
+  const EditGroupScreen({super.key, required this.group});
+
+  final Group group;
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  State<EditGroupScreen> createState() => _EditGroupScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
-  late final TextEditingController nameController;
-  late final TextEditingController bioController;
+class _EditGroupScreenState extends State<EditGroupScreen> {
+  late final TextEditingController nameController, descriptionController;
   File? _image;
-  String? oldProfileUrl;
 
-  final userProfileController = Get.find<UserProfileController>();
+  final groupsController = Get.find<GroupsController>();
 
   @override
   void initState() {
-    nameController = TextEditingController(text: widget.user.name);
-    bioController = TextEditingController(text: widget.user.bio);
-    oldProfileUrl = widget.user.profilePicUrl;
+    nameController = TextEditingController(text: widget.group.name);
+    descriptionController = TextEditingController(text: widget.group.description,);
     super.initState();
   }
 
   @override
   void dispose() {
     nameController.dispose();
-    bioController.dispose();
+    descriptionController.dispose();
     super.dispose();
   }
 
@@ -56,7 +52,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Update profile',
+                    'Edit Group',
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -66,26 +62,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 _buildProfilePictureSection(),
                 const SizedBox(height: 30),
                 CustomTextField(
-                  label: 'Your name',
+                  label: 'Group name',
                   controller: nameController,
                   textCapitalization: TextCapitalization.words,
+                  textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 20),
                 CustomTextField(
-                  label: 'Your bio',
-                  controller: bioController,
-                  textCapitalization: TextCapitalization.sentences,
+                  label: 'Group description',
+                  controller: descriptionController,
+                  textCapitalization: TextCapitalization.words,
                 ),
                 const SizedBox(height: 70),
                 Obx(() {
-                  if (userProfileController.isUpdatingUserProfile) {
+                  if (groupsController.isUpdatingGroup) {
                     return const CircularProgressIndicator(
                       color: AppColors.myrtleGreen,
                     );
                   } else {
                     return PrimaryButton(
-                      title: 'Update Profile',
-                      onPressed: _createUserProfile,
+                      title: 'Update Group',
+                      onPressed: _updateGroup,
                     );
                   }
                 }),
@@ -120,13 +117,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     _image!,
                     fit: BoxFit.cover,
                   )
-                : (oldProfileUrl != null)
+                : (widget.group.groupProfilePicUrl != null)
                     ? Image.network(
-                        oldProfileUrl!,
+                        widget.group.groupProfilePicUrl!,
                         fit: BoxFit.cover,
                       )
                     : Image.asset(
-                        Assets.imagesUserProfile,
+                        Assets.imagesUserGroup,
                         fit: BoxFit.cover,
                       ),
           ),
@@ -142,7 +139,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
         ),
-        if (_image != null || oldProfileUrl != null)
+        if (_image != null)
           Positioned(
             top: 0,
             right: 0,
@@ -158,31 +155,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  void _createUserProfile() {
-    final email = Get.find<AuthController>().email;
-    final user = UserModel(
-      email: email!,
-      name: nameController.text,
-      bio: bioController.text,
-      profilePicUrl: oldProfileUrl,
-      isOnline: true,
-    );
-    dev.log('OldProfileUrl: $oldProfileUrl | Image: $_image', name: 'Profile');
-    userProfileController.updateUserProfile(
-      email: email,
-      user: user,
+  void _updateGroup() {
+    groupsController.updateGroup(
       image: _image,
-      removeProfilePhoto: oldProfileUrl == null && _image == null,
+      name: nameController.text,
+      description: descriptionController.text,
+      id: widget.group.id,
     );
   }
 
   void _removeImage() {
     setState(() {
-      if (_image != null) {
-        _image = null;
-      } else {
-        oldProfileUrl = null;
-      }
+      _image = null;
     });
   }
 

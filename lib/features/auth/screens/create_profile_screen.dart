@@ -35,22 +35,20 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Create Your Profile',
+          style: Theme.of(context).textTheme.displayMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
           child: SingleChildScrollView(
             child: Column(
               children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Create your profile',
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ),
-                const SizedBox(height: 30),
                 _buildProfilePictureSection(),
                 const SizedBox(height: 30),
                 CustomTextField(
@@ -69,7 +67,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                 Obx(() {
                   if (userProfileController.isCreatingUserProfile) {
                     return const CircularProgressIndicator(
-                      color: AppColors.tartOrange,
+                      color: AppColors.myrtleGreen,
                     );
                   } else {
                     return PrimaryButton(
@@ -122,7 +120,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             onPressed: _pickImageFromGallery,
             icon: const Icon(Icons.add_photo_alternate_outlined),
             style: IconButton.styleFrom(
-              backgroundColor: AppColors.tartOrange,
+              backgroundColor: AppColors.myrtleGreen,
             ),
           ),
         ),

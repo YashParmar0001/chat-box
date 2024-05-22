@@ -17,10 +17,10 @@ class HomeScreen extends StatelessWidget {
     final chatController = Get.find<ChatController>();
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: Text(
           'Home',
           style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                fontFamily: 'Poppins',
                 fontWeight: FontWeight.w600,
               ),
         ),
@@ -34,8 +34,10 @@ class HomeScreen extends StatelessWidget {
       body: Obx(
         () {
           if (chatController.isLoading) {
-            return const CircularProgressIndicator(
-              color: AppColors.tartOrange,
+            return const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.myrtleGreen,
+              ),
             );
           } else {
             return ListView.builder(

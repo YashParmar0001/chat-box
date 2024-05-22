@@ -74,4 +74,16 @@ class UserRepository {
       },
     );
   }
+
+  Future<void> blockUser(String userId, String otherUserId) async {
+    await _firestore.collection('users').doc(userId).update({
+      'blocked_users' : FieldValue.arrayUnion([otherUserId]),
+    });
+  }
+
+  Future<void> unblockUser(String userId, String otherUserId) async {
+    await _firestore.collection('users').doc(userId).update({
+      'blocked_users' : FieldValue.arrayRemove([otherUserId]),
+    });
+  }
 }

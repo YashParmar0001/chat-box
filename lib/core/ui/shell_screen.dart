@@ -1,4 +1,6 @@
+import 'package:chat_box/constants/colors.dart';
 import 'package:chat_box/controller/auth_controller.dart';
+import 'package:chat_box/features/groups/screens/groups_screen.dart';
 import 'package:chat_box/features/home/screens/home_screen.dart';
 import 'package:chat_box/features/profile/screens/my_profile_screen.dart';
 import 'package:chat_box/generated/assets.dart';
@@ -56,66 +58,60 @@ class _ShellScreenState extends State<ShellScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     const screens = [
       HomeScreen(),
+      GroupsScreen(),
       MyProfileScreen(),
     ];
 
     return Scaffold(
       body: screens[_index],
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 10,
+      bottomNavigationBar: BottomNavigationBar(
+        onTap: (value) {
+          setState(() {
+            _index = value;
+          });
+        },
+        fixedColor: AppColors.myrtleGreen,
+        selectedLabelStyle: const TextStyle(
+          fontSize: 14,
+          fontFamily: 'Caros',
         ),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 4,
-              spreadRadius: 1,
-              color: Colors.black26,
-              offset: Offset.zero,
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildItem(0, Assets.iconsHome),
-            // FloatingActionButton.extended(
-            //   onPressed: () {},
-            //   label: Text(
-            //     'New Chat',
-            //     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            //           fontFamily: 'Poppins',
-            //           color: Colors.white,
-            //         ),
-            //   ),
-            //   icon: const Icon(
-            //     Icons.add,
-            //     color: Colors.white,
-            //   ),
-            //   shape: RoundedRectangleBorder(
-            //     borderRadius: BorderRadius.circular(30),
-            //   ),
-            //   backgroundColor: AppColors.tartOrange,
-            // ),
-            _buildItem(1, Assets.iconsUser),
-          ],
-        ),
+        currentIndex: _index,
+        elevation: 10,
+        items: [
+          _buildItem(
+            index: 0,
+            icon: Assets.iconsMessages,
+            label: 'Messages',
+          ),
+          _buildItem(
+            index: 1,
+            icon: Assets.iconsUserGroup,
+            label: 'Groups',
+          ),
+          _buildItem(
+            index: 2,
+            icon: Assets.iconsUser,
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildItem(int index, String asset) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          if (_index != index) _index = index;
-        });
-      },
-      child: SvgPicture.asset(
-        asset,
-        width: 30,
-        color: (_index == index) ? Colors.black : Colors.grey,
+  BottomNavigationBarItem _buildItem({
+    required String icon,
+    required String label,
+    required int index,
+  }) {
+    return BottomNavigationBarItem(
+      label: label,
+      icon: SvgPicture.asset(
+        icon,
+        color: Colors.grey,
+      ),
+      activeIcon: SvgPicture.asset(
+        icon,
+        color: AppColors.myrtleGreen,
       ),
     );
   }

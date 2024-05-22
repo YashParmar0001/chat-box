@@ -24,7 +24,6 @@ class CurrentChatController extends GetxController {
 
   bool get atMaxLimit => _atMaxLimit.value;
 
-  // int get _page => _listeners.length;
   int page = 1;
 
   final _messages = <MessageModel>[].obs;
@@ -102,16 +101,12 @@ class CurrentChatController extends GetxController {
 
       chatRepository.changeTypingStatus(chatKey, currentUserId, true);
       typingTimer?.cancel();
-      typingTimer = Timer(const Duration(seconds: 1), () {
+      typingTimer = Timer(const Duration(seconds: 4), () {
         chatRepository.changeTypingStatus(chatKey, currentUserId, false);
       });
     });
 
     listenToTypingStatus();
-
-    ever(_isTyping, (isTyping) {
-      dev.log('Typing: $isTyping', name: 'Typing');
-    });
     super.onInit();
   }
 
@@ -287,10 +282,17 @@ class CurrentChatController extends GetxController {
   Future<void> sendMessage() async {
     _isSendingMessage.value = true;
 
-    final isOnline = Get.find<ChatController>()
+    final otherUser = Get.find<ChatController>()
         .users
-        .firstWhere((e) => e.email == otherUserId)
-        .isOnline;
+        .firstWhere((e) => e.email == otherUserId);
+
+    // If user is blocked don't send the message
+    if (otherUser.blockedUsers.contains(currentUserId)) {
+      _isSendingMessage.value = false;
+      return;
+    }
+
+    final isOnline = otherUser.isOnline;
 
     final message = MessageModel(
       senderId: currentUserId,

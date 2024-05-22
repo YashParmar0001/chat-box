@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:chat_box/controller/auth_controller.dart';
 import 'package:chat_box/model/user_model.dart';
 import 'package:chat_box/repositories/user_repository.dart';
 import 'package:get/get.dart';
@@ -26,5 +27,15 @@ class ChatController extends GetxController {
       },
     );
     super.onInit();
+  }
+
+  void blockUser(String userId) {
+    final email = Get.find<AuthController>().email;
+    userRepository.blockUser(email!, userId);
+  }
+
+  void unblockUser(String userId) {
+    final email = Get.find<AuthController>().email;
+    userRepository.unblockUser(email!, userId);
   }
 }
