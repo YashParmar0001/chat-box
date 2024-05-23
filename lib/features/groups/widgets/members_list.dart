@@ -38,17 +38,36 @@ class MembersList extends StatelessWidget {
               },
               child: Row(
                 children: [
-                  ProfilePhoto(url: member.profilePicUrl, dimension: 50),
+                  Stack(
+                    children: [
+                      ProfilePhoto(url: member.profilePicUrl, dimension: 50),
+                      if (member.isOnline)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            width: 15,
+                            height: 15,
+                            decoration: const ShapeDecoration(
+                              shape: CircleBorder(),
+                              color: Colors.green,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                   const SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         (currentUserId == member.email) ? 'You' : member.name,
-                        style:
-                            Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
                       const SizedBox(height: 5),
                       Text(

@@ -67,11 +67,17 @@ class CurrentChatController extends GetxController {
 
   final messageTextController = TextEditingController();
   final _isSendingMessage = false.obs;
+  final _isSendingVideoMessage = false.obs;
+  final _isSendingImageMessage = false.obs;
   final _sendButtonEnabled = false.obs;
 
   bool get isSendingMessage => _isSendingMessage.value;
 
   bool get sendButtonEnabled => _sendButtonEnabled.value;
+
+  bool get isSendingVideoMessage => _isSendingVideoMessage.value;
+
+  bool get isSendingImageMessage => _isSendingImageMessage.value;
 
   final chatRepository = ChatRepository();
 
@@ -279,8 +285,14 @@ class CurrentChatController extends GetxController {
     });
   }
 
-  Future<void> sendMessage() async {
+  Future<void> sendMessage({bool isMediaMessage = false}) async {
     _isSendingMessage.value = true;
+    if (selectedVideo != null) {
+      _isSendingVideoMessage.value = true;
+    }
+    if (selectedImage != null) {
+      _isSendingImageMessage.value = true;
+    }
 
     final otherUser = Get.find<ChatController>()
         .users
@@ -318,7 +330,13 @@ class CurrentChatController extends GetxController {
       dev.log('Got error: $e', name: 'Chat');
       Get.snackbar('Chat', 'Something went wrong while sending the message!');
     }
+
+    if (isMediaMessage) {
+      Get.back();
+    }
     _isSendingMessage.value = false;
+    _isSendingImageMessage.value = false;
+    _isSendingVideoMessage.value = false;
     selectedImage = null;
     selectedVideo = null;
   }

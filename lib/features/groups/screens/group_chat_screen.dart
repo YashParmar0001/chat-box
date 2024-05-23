@@ -8,7 +8,6 @@ import 'package:chat_box/features/groups/screens/group_details_screen.dart';
 import 'package:chat_box/features/groups/widgets/group_chat_bubble.dart';
 import 'package:chat_box/features/groups/widgets/group_chat_input_field.dart';
 import 'package:chat_box/model/group_message_model.dart';
-import 'package:chat_box/model/group_typing_status.dart';
 import 'package:chat_box/model/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -70,11 +69,12 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               )
               .toList();
           final users = Get.find<ChatController>().users;
-          final onlineUsers = users
-              .where((e) => e.isOnline && group.memberIds.contains(e.email))
-              .length;
 
-          final typingUser = typingStatuses.isNotEmpty
+          final currentUserId = Get.find<AuthController>().email!;
+          final typingUsers = typingStatuses.where(
+            (e) => e.userId != currentUserId,
+          ).toList();
+          final typingUser = typingUsers.isNotEmpty
               ? users.firstWhere((e) => e.email == typingStatuses.first.userId)
               : null;
           return GestureDetector(
@@ -138,7 +138,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                     ),
                           )
                         : Text(
-                            '${group.memberIds.length} Members, $onlineUsers Online',
+                            '${group.memberIds.length} Members',
                             style: Theme.of(context)
                                 .textTheme
                                 .headlineSmall

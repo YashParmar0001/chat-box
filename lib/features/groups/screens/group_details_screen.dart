@@ -4,7 +4,6 @@ import 'package:chat_box/controller/groups_controller.dart';
 import 'package:chat_box/features/groups/screens/add_members_screen.dart';
 import 'package:chat_box/features/groups/screens/edit_group_screen.dart';
 import 'package:chat_box/features/groups/widgets/members_list.dart';
-import 'package:chat_box/features/groups/widgets/members_select_field.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

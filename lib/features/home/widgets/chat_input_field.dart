@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:chat_box/controller/current_chat_controller.dart';
+import 'package:chat_box/features/home/screens/image_preview_screen.dart';
+import 'package:chat_box/features/home/screens/video_preview_screen.dart';
 import 'package:chat_box/generated/assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -108,6 +110,9 @@ class ChatInputField extends StatelessWidget {
   void _showMediaOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
       builder: (context) {
         return Padding(
           padding: const EdgeInsets.symmetric(
@@ -218,10 +223,11 @@ class ChatInputField extends StatelessWidget {
       maxDuration: const Duration(seconds: 10),
     );
     if (video != null) {
-      final videoFile = File(video.path);
-      debugPrint('Video: $videoFile');
       chatController.selectedVideo = File(video.path);
-      sendMessage();
+      Get.to(
+        () => VideoPreviewScreen(chatController: chatController),
+      );
+      // sendMessage();
     }
   }
 
@@ -230,50 +236,7 @@ class ChatInputField extends StatelessWidget {
     final image = await picker.pickImage(source: source, imageQuality: 50);
     if (image != null) {
       chatController.selectedImage = File(image.path);
-      if (source == ImageSource.gallery) {
-        _showImageConfirmationDialog();
-      } else {
-        sendMessage();
-      }
+      Get.to(() => ImagePreviewScreen(chatController: chatController));
     }
-  }
-
-  void _showImageConfirmationDialog() {
-    Get.dialog(
-      Dialog(
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.file(chatController.selectedImage!),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      Get.back();
-                      chatController.selectedImage = null;
-                    },
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Get.back();
-                      sendMessage();
-                    },
-                    child: const Text('Ok'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

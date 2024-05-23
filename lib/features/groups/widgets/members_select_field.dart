@@ -2,7 +2,6 @@ import 'dart:developer' as dev;
 
 import 'package:chat_box/constants/colors.dart';
 import 'package:chat_box/controller/chat_controller.dart';
-import 'package:chat_box/controller/groups_controller.dart';
 import 'package:chat_box/model/group_model.dart';
 import 'package:chat_box/model/user_model.dart';
 import 'package:flutter/material.dart';

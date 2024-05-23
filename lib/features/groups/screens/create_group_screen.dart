@@ -46,47 +46,49 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                _buildProfilePictureSection(),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: CustomTextField(
-                    label: 'Group name',
-                    controller: nameController,
-                    textCapitalization: TextCapitalization.words,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  _buildProfilePictureSection(),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: CustomTextField(
+                      label: 'Group name',
+                      controller: nameController,
+                      textCapitalization: TextCapitalization.words,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            CustomTextField(
-              label: 'Group Description',
-              controller: descriptionController,
-              textCapitalization: TextCapitalization.sentences,
-            ),
-            const SizedBox(height: 40),
-            Text(
-              'Add Members',
-              style: Theme.of(context).textTheme.displaySmall,
-            ),
-            const SizedBox(height: 20),
-            Obx(() {
-              final chatController = Get.find<ChatController>();
-              final currentUserId = Get.find<AuthController>().email!;
-              final users = chatController.users
-                  .where((e) => !(e.email == currentUserId))
-                  .toList();
+                ],
+              ),
+              const SizedBox(height: 20),
+              CustomTextField(
+                label: 'Group Description',
+                controller: descriptionController,
+                textCapitalization: TextCapitalization.sentences,
+              ),
+              const SizedBox(height: 40),
+              Text(
+                'Add Members',
+                style: Theme.of(context).textTheme.displaySmall,
+              ),
+              const SizedBox(height: 20),
+              Obx(() {
+                final chatController = Get.find<ChatController>();
+                final currentUserId = Get.find<AuthController>().email!;
+                final users = chatController.users
+                    .where((e) => !(e.email == currentUserId))
+                    .toList();
 
-              return Expanded(
-                child: ListView.builder(
+                return ListView.builder(
+                  shrinkWrap: true,
                   itemCount: users.length,
+                  physics: const NeverScrollableScrollPhysics(),
                   itemBuilder: (context, index) {
                     final user = users[index];
                     return Padding(
@@ -137,22 +139,23 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                       ),
                     );
                   },
-                ),
-              );
-            }),
-            Obx(() {
-              if (groupsController.isCreatingGroup) {
-                return const CircularProgressIndicator(
-                  color: AppColors.myrtleGreen,
                 );
-              } else {
-                return PrimaryButton(
-                  title: 'Create Group',
-                  onPressed: _createGroup,
-                );
-              }
-            }),
-          ],
+              }),
+              const SizedBox(height: 20),
+              Obx(() {
+                if (groupsController.isCreatingGroup) {
+                  return const CircularProgressIndicator(
+                    color: AppColors.myrtleGreen,
+                  );
+                } else {
+                  return PrimaryButton(
+                    title: 'Create Group',
+                    onPressed: _createGroup,
+                  );
+                }
+              }),
+            ],
+          ),
         ),
       ),
     );

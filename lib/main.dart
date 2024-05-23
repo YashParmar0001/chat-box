@@ -31,6 +31,9 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.getTheme(),
       initialBinding: ChatBoxBinding(),
       initialRoute: '/splash',
+      // routerDelegate: router.routerDelegate,
+      // routeInformationParser: router.routeInformationParser,
+      // routeInformationProvider: router.routeInformationProvider,
       getPages: [
         GetPage(
           name: '/splash',

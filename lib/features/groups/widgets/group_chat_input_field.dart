@@ -1,8 +1,9 @@
 import 'dart:io';
 
 import 'package:chat_box/controller/auth_controller.dart';
-import 'package:chat_box/controller/current_chat_controller.dart';
 import 'package:chat_box/controller/current_group_controller.dart';
+import 'package:chat_box/features/groups/screens/group_image_preview_screen.dart';
+import 'package:chat_box/features/groups/screens/group_video_preview_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -73,10 +74,11 @@ class GroupChatInputField extends StatelessWidget {
                         right: 10,
                       ),
                       hintText: 'Write your message',
-                      hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.black.withOpacity(0.5),
-                        fontFamily: 'Caros',
-                      ),
+                      hintStyle:
+                          Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.black.withOpacity(0.5),
+                                fontFamily: 'Caros',
+                              ),
                     ),
                     textCapitalization: TextCapitalization.sentences,
                     onSubmitted: (value) {
@@ -87,7 +89,7 @@ class GroupChatInputField extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Obx(
-                    () {
+                () {
                   if (chatController.isSendingMessage) {
                     return const CircularProgressIndicator(
                       color: AppColors.myrtleGreen,
@@ -123,6 +125,9 @@ class GroupChatInputField extends StatelessWidget {
   void _showMediaOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
       builder: (context) {
         return Padding(
           padding: const EdgeInsets.symmetric(
@@ -215,8 +220,8 @@ class GroupChatInputField extends StatelessWidget {
                 Text(
                   description,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.black.withOpacity(0.6),
-                  ),
+                        color: Colors.black.withOpacity(0.6),
+                      ),
                 ),
               ],
             ),
@@ -233,10 +238,11 @@ class GroupChatInputField extends StatelessWidget {
       maxDuration: const Duration(seconds: 10),
     );
     if (video != null) {
-      final videoFile = File(video.path);
-      debugPrint('Video: $videoFile');
       chatController.selectedVideo = File(video.path);
-      sendMessage();
+      Get.to(
+        () => GroupVideoPreviewScreen(groupController:  chatController),
+      );
+      // sendMessage();
     }
   }
 
@@ -245,50 +251,7 @@ class GroupChatInputField extends StatelessWidget {
     final image = await picker.pickImage(source: source, imageQuality: 50);
     if (image != null) {
       chatController.selectedImage = File(image.path);
-      if (source == ImageSource.gallery) {
-        _showImageConfirmationDialog();
-      } else {
-        sendMessage();
-      }
+      Get.to(() => GroupImagePreviewScreen(groupController: chatController));
     }
-  }
-
-  void _showImageConfirmationDialog() {
-    Get.dialog(
-      Dialog(
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.file(chatController.selectedImage!),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      Get.back();
-                      // chatController.selectedImage = null;
-                    },
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Get.back();
-                      sendMessage();
-                    },
-                    child: const Text('Ok'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

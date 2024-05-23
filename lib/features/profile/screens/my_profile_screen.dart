@@ -16,75 +16,84 @@ class MyProfileScreen extends StatelessWidget {
     final userProfileController = Get.find<UserProfileController>();
 
     return Scaffold(
-      body: SafeArea(
-        child: Obx(
-          () {
-            if (userProfileController.isFetchingUserProfile) {
-              return const CircularProgressIndicator(
-                color: AppColors.myrtleGreen,
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            onPressed: authController.logout,
+            icon: const Icon(
+              Icons.logout_rounded,
+              color: Colors.red,
+            ),
+          ),
+        ],
+      ),
+      body: Obx(
+        () {
+          if (userProfileController.isFetchingUserProfile) {
+            return const CircularProgressIndicator(
+              color: AppColors.myrtleGreen,
+            );
+          } else {
+            final user = userProfileController.currentUserProfile;
+            if (user != null) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 50),
+                    Row(
+                      children: [
+                        const Spacer(),
+                        Column(
+                          children: [
+                            ProfilePhoto(
+                              url: user.profilePicUrl,
+                              dimension: 100,
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              user.name,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .displayLarge
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                      ],
+                    ),
+                    const SizedBox(height: 50),
+                    _buildDataField(
+                      context,
+                      'Name',
+                      user.name,
+                    ),
+                    const SizedBox(height: 30),
+                    _buildDataField(
+                      context,
+                      'Bio',
+                      user.bio,
+                    ),
+                    const SizedBox(height: 30),
+                    _buildDataField(
+                      context,
+                      'Email',
+                      authController.email!,
+                    ),
+                  ],
+                ),
               );
             } else {
-              final user = userProfileController.currentUserProfile;
-              if (user != null) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 50),
-                      Row(
-                        children: [
-                          const Spacer(),
-                          Column(
-                            children: [
-                              ProfilePhoto(
-                                url: user.profilePicUrl,
-                                dimension: 100,
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                user.name,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .displayLarge
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                            ],
-                          ),
-                          const Spacer(),
-                        ],
-                      ),
-                      const SizedBox(height: 50),
-                      _buildDataField(
-                        context,
-                        'Name',
-                        user.name,
-                      ),
-                      const SizedBox(height: 30),
-                      _buildDataField(
-                        context,
-                        'Bio',
-                        user.bio,
-                      ),
-                      const SizedBox(height: 30),
-                      _buildDataField(
-                        context,
-                        'Email',
-                        authController.email!,
-                      ),
-                    ],
-                  ),
-                );
-              } else {
-                return const SizedBox();
-              }
+              return const SizedBox();
             }
-          },
-        ),
+          }
+        },
       ),
       floatingActionButton: (userProfileController.currentUserProfile != null)
           ? FloatingActionButton.extended(
@@ -98,8 +107,8 @@ class MyProfileScreen extends StatelessWidget {
               label: Text(
                 'Edit Profile',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Colors.white,
-                ),
+                      color: Colors.white,
+                    ),
               ),
               icon: const Icon(
                 Icons.edit,
