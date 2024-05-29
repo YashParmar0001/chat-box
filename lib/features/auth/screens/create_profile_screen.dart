@@ -9,7 +9,10 @@ import 'package:chat_box/generated/assets.dart';
 import 'package:chat_box/model/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../../../utils/image_utils.dart';
 
 class CreateProfileScreen extends StatefulWidget {
   const CreateProfileScreen({super.key});
@@ -166,8 +169,16 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      final croppedImage = await ImageUtils.cropImage(
+        imagePath: image.path,
+        lockAspectRatio: true,
+        aspectRatioPresets: [CropAspectRatioPreset.square],
+        initialAspectRatio: CropAspectRatioPreset.square,
+      );
       setState(() {
-        _image = File(image.path);
+        if (croppedImage != null) {
+          _image = File(croppedImage);
+        }
       });
     }
   }

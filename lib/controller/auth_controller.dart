@@ -2,7 +2,6 @@ import 'dart:developer' as dev;
 
 import 'package:chat_box/controller/groups_controller.dart';
 import 'package:chat_box/controller/user_profile_controller.dart';
-import 'package:chat_box/core/ui/shell_screen.dart';
 import 'package:chat_box/repositories/auth_repository.dart';
 import 'package:get/get.dart';
 
@@ -29,13 +28,12 @@ class AuthController extends GetxController {
     final groupsController = Get.put(GroupsController());
 
     ever(_isAuthenticated, (isAuthenticated) {
-      dev.log('Listen to auth states', name: 'Auth');
       if (!isAuthenticated) {
-        dev.log('User logged out', name: 'Auth');
         setUserState(false, email: email);
         _email.value = null;
         userProfileController.closeSubscriptions();
         groupsController.closeSubscriptions();
+        Get.back();
         Get.offNamed('/login');
       } else {
         setUserState(true, email: email);
@@ -48,7 +46,7 @@ class AuthController extends GetxController {
     if (isAuthenticated) {
       userProfileController.getUserProfile(email!);
       groupsController.getGroups();
-      Get.off(() => const ShellScreen());
+      Get.offNamed('/shell');
     }
     super.onInit();
   }
@@ -86,7 +84,7 @@ class AuthController extends GetxController {
       _email.value = email;
       Get.find<UserProfileController>().getUserProfile(email);
       Get.find<GroupsController>().getGroups();
-      Get.off(() => const ShellScreen());
+      Get.offNamed('/shell');
     }
     _isLoggingIn.value = false;
   }

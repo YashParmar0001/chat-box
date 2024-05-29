@@ -57,8 +57,9 @@ class ChatBubble extends StatelessWidget {
                   bottom: 4,
                 ),
                 decoration: BoxDecoration(
-                  color:
-                      isCurrentUser ? AppColors.myrtleGreen : AppColors.grayX11,
+                  color: isCurrentUser
+                      ? AppColors.myrtleGreen
+                      : AppColors.grayX11,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(isCurrentUser ? 12 : 0),
                     topRight: Radius.circular(isCurrentUser ? 0 : 12),
@@ -87,10 +88,10 @@ class ChatBubble extends StatelessWidget {
                                       .textTheme
                                       .bodyMedium
                                       ?.copyWith(
-                                        color: isCurrentUser
-                                            ? Colors.white
-                                            : Colors.black,
-                                      ),
+                                    color: isCurrentUser
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
                                 );
                               }
                             },
@@ -140,7 +141,7 @@ class ChatBubble extends StatelessWidget {
           return SvgPicture.asset(
             Assets.iconsDoubleTick,
             width: 20,
-            color: message.isRead ? Colors.white : AppColors.grayX11,
+            color: message.isRead ? Colors.blue : AppColors.grayX11,
           );
         } else {
           return SvgPicture.asset(
@@ -178,26 +179,48 @@ class ChatBubble extends StatelessWidget {
         doubleTapZoomable: true,
         immersive: false,
       ),
-      child: Image(
-        image: imageProvider,
-        fit: BoxFit.cover,
-        width: 150,
-        height: 150,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress != null &&
-              loadingProgress.expectedTotalBytes != null) {
-            final percentage = loadingProgress.cumulativeBytesLoaded /
-                loadingProgress.expectedTotalBytes!;
-            if (percentage == 1) {
-              return child;
-            }else {
-              return CircularProgressIndicator(value: percentage, color: Colors.white,);
-            }
-          }else {
-            return child;
-          }
-        },
-        errorBuilder: (context, error, stackTrace) => placeholder,
+      child: Stack(
+        children: [
+          Image(
+            image: imageProvider,
+            fit: BoxFit.cover,
+            width: 150,
+            height: 150,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress != null &&
+                  loadingProgress.expectedTotalBytes != null) {
+                final percentage = loadingProgress.cumulativeBytesLoaded /
+                    loadingProgress.expectedTotalBytes!;
+                if (percentage == 1) {
+                  return child;
+                } else {
+                  return CircularProgressIndicator(
+                    value: percentage,
+                    color: Colors.white,
+                  );
+                }
+              } else {
+                return child;
+              }
+            },
+            errorBuilder: (context, error, stackTrace) => placeholder,
+          ),
+          if (isCurrentUser)
+            Positioned.fill(
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black87,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -231,29 +254,48 @@ class ChatBubble extends StatelessWidget {
         );
       },
       child: (message.videoThumbnailUrl != null)
-          ? CachedNetworkImage(
-              imageUrl: message.videoThumbnailUrl!,
-              imageBuilder: (context, imageProvider) {
-                return Stack(
-                  children: [
-                    Image(
-                      image: imageProvider,
-                      fit: BoxFit.cover,
-                      // height: 150,
-                      width: 200,
-                    ),
-                    const Positioned.fill(
-                      child: Icon(
-                        Icons.play_arrow_rounded,
-                        color: Colors.white,
-                        size: 50,
+          ? Stack(
+              children: [
+                CachedNetworkImage(
+                  imageUrl: message.videoThumbnailUrl!,
+                  imageBuilder: (context, imageProvider) {
+                    return Stack(
+                      children: [
+                        Image(
+                          image: imageProvider,
+                          fit: BoxFit.cover,
+                          // height: 150,
+                          width: 200,
+                        ),
+                        const Positioned.fill(
+                          child: Icon(
+                            Icons.play_arrow_rounded,
+                            color: Colors.white,
+                            size: 50,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                  errorWidget: (context, url, error) => videoPlaceholder,
+                  placeholder: (context, url) => videoPlaceholder,
+                ),
+                if (isCurrentUser)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black87,
+                          ],
+                        ),
                       ),
                     ),
-                  ],
-                );
-              },
-              errorWidget: (context, url, error) => videoPlaceholder,
-              placeholder: (context, url) => videoPlaceholder,
+                  ),
+              ],
             )
           : videoPlaceholder,
     );

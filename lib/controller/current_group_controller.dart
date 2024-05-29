@@ -12,7 +12,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
 import '../model/user_model.dart';
-import 'chat_controller.dart';
+import '../services/local_media_service.dart';
 
 class CurrentGroupController extends GetxController {
   CurrentGroupController({required this.groupId, required this.currentUserId});
@@ -146,16 +146,16 @@ class CurrentGroupController extends GetxController {
     }
   }
 
-  List<UserModel> getGroupMembers() {
+  List<UserModel> getGroupMembers(List<UserModel> users) {
     if (group == null) {
       return const [];
     } else {
-      final users = Get.find<ChatController>().users;
       dev.log('Users: ${users.map((e) => e.name).toList()}', name: 'Group');
       dev.log('Group members: ${group!.memberIds}', name: 'Group');
       final members =
           users.where((e) => group!.memberIds.contains(e.email)).toList();
-      dev.log('Group members: ${members.map((e) => e.name).toList()}', name: 'Group');
+      dev.log('Group members: ${members.map((e) => e.name).toList()}',
+          name: 'Group');
       final admin = members.firstWhere(
         (e) => e.email == group!.createdByUserId,
       );
@@ -167,14 +167,6 @@ class CurrentGroupController extends GetxController {
   }
 
   Future<void> getMessages() async {
-    // _isLoadingMessages.value = true;
-    // _messagesSubscription =
-    //     _groupRepository.getGroupMessages(groupId: groupId).listen(
-    //   (messages) {
-    //     _messages.value = messages;
-    //     _isLoadingMessages.value = false;
-    //   },
-    // );
     _messages.value = await _sqliteService.getGroupMessages(groupKey: groupId);
     dev.log('Local db messages: $messages', name: 'Group');
 
@@ -220,16 +212,27 @@ class CurrentGroupController extends GetxController {
       //   return;
       // }
 
-      if (start != null) query = query.startAfterDocument(start!);
+      if (start != null) query = query.startAtDocument(start!);
 
       _messagesSubscription = query.snapshots().listen((event) async {
         for (var change in event.docChanges) {
+          GroupMessageModel message = GroupMessageModel.fromMap(
+            change.doc.data()!,
+          );
+
           if (change.type == DocumentChangeType.added) {
-            GroupMessageModel message = GroupMessageModel.fromMap(
-              change.doc.data()!,
-            );
+            dev.log('New message added: ${message.text}', name: 'GroupChat');
+            if (currentUserId != message.senderId &&
+                !message.readBy.contains(currentUserId)) {
+              _groupRepository.addReadBy(
+                groupId: groupId,
+                messageId: message.timestamp.toString(),
+                userId: currentUserId,
+              );
+            }
 
             if (!messages.contains(message)) {
+              dev.log('Adding message: $message', name: 'GroupChat');
               _messages.insert(0, message);
 
               _sqliteService.storeGroupMessage(
@@ -237,21 +240,82 @@ class CurrentGroupController extends GetxController {
                 groupKey: groupId,
               );
             }
+
+            if (_messages.contains(message)) {
+              final index = messages.indexWhere(
+                (msg) => msg.timestamp == message.timestamp,
+              );
+              final oldMessage = messages[index];
+
+              // Check for media
+              if (oldMessage.imageUrl != null &&
+                  oldMessage.localImagePath == null) {
+                dev.log('Processing image path for message', name: 'GroupChat');
+                oldMessage.localImagePath ??=
+                    await processLocalImagePath(oldMessage);
+                if (oldMessage.localImagePath != null) {
+                  // Update UI
+                  if (index != -1) {
+                    _messages[index] = _messages[index].copyWith(
+                      localImagePath: oldMessage.localImagePath,
+                    );
+                  }
+
+                  // Update local message
+                  _sqliteService.updateGroupMessage2(
+                    fields: ['local_image_path'],
+                    values: [oldMessage.localImagePath],
+                    id: oldMessage.timestamp,
+                  );
+                }
+              } else if (oldMessage.videoUrl != null &&
+                  oldMessage.localVideoPath == null) {
+                oldMessage.localVideoPath ??=
+                    await processLocalVideoPath(oldMessage);
+                if (oldMessage.localVideoPath != null) {
+                  // Update UI
+                  if (index != -1) {
+                    _messages[index] = _messages[index].copyWith(
+                      localVideoPath: oldMessage.localVideoPath,
+                    );
+                  }
+
+                  // Update local message
+                  _sqliteService.updateGroupMessage2(
+                    fields: ['local_video_path'],
+                    values: [message.localVideoPath],
+                    id: message.timestamp,
+                  );
+                }
+              }
+            }
           } else if (change.type == DocumentChangeType.modified) {
-            GroupMessageModel message = GroupMessageModel.fromMap(
-              change.doc.data()!,
-            );
+            dev.log('Modified message: ${message.text}', name: 'GroupChat');
             final existingMessageIndex = messages.indexWhere(
               (msg) => msg.timestamp == message.timestamp,
             );
 
             if (existingMessageIndex != -1) {
-              _messages[existingMessageIndex] = message;
+              dev.log('Updating message: ${message.text}', name: 'GroupChat');
+              _messages[existingMessageIndex] =
+                  _messages[existingMessageIndex].copyWith(
+                readBy: message.readBy,
+                text: message.text,
+              );
             }
 
-            _sqliteService.updateGroupMessage(message: message);
+            _sqliteService.updateGroupMessage2(
+              fields: ['content', 'read_by'],
+              values: [
+                message.text,
+                message.readBy.isEmpty ? null : message.readBy.join(','),
+              ],
+              id: message.timestamp,
+            );
+
+            // _sqliteService.updateGroupMessage(message: message);
           } else if (change.type == DocumentChangeType.removed) {
-            dev.log('Message removed', name: 'Group');
+            dev.log('Message removed: ${message.text}', name: 'GroupChat');
             if (currentUserId != (change.doc.data()!['sender_id']).toString()) {
               _messages.removeWhere(
                 (e) => e.timestamp.toString() == change.doc.id,
@@ -339,20 +403,55 @@ class CurrentGroupController extends GetxController {
     }
   }
 
+  Future<String?> processLocalImagePath(GroupMessageModel message) async {
+    String? imagePath;
+    if (message.imageUrl != null) {
+      final localPath = await LocalMediaService.getLocalGroupVideoPath(
+        groupId: groupId,
+        messageId: message.timestamp,
+      );
+      if (localPath == null) {
+        final path = await LocalMediaService.downloadAndCacheGroupPhoto(
+          groupId: groupId,
+          messageId: message.timestamp,
+        );
+        imagePath = path;
+      } else {
+        imagePath = localPath;
+      }
+    }
+
+    return imagePath;
+  }
+
+  Future<String?> processLocalVideoPath(GroupMessageModel message) async {
+    String? videoPath;
+    if (message.videoUrl != null) {
+      final localPath = await LocalMediaService.getLocalGroupVideoPath(
+        groupId: groupId,
+        messageId: message.timestamp,
+      );
+      if (localPath == null) {
+        final path = await LocalMediaService.downloadAndCacheGroupVideo(
+          groupId: groupId,
+          messageId: message.timestamp,
+        );
+        videoPath = path;
+      } else {
+        videoPath = localPath;
+      }
+    }
+
+    return videoPath;
+  }
+
   Future<void> synchronizeWithLocalDB(
     List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
   ) async {
+    dev.log('Synchronization start', name: 'Group');
     final localMessages = messages;
     final firestoreMessages =
         docs.map((e) => GroupMessageModel.fromMap(e.data())).toList();
-    dev.log(
-      'Firestore messages: ${firestoreMessages.map((e) => e.text).toList()}',
-      name: 'Group',
-    );
-    dev.log(
-      'Local messages: ${localMessages.map((e) => e.text).toList()}',
-      name: 'Group',
-    );
 
     final firestoreMessageIds =
         firestoreMessages.map((msg) => msg.timestamp).toSet();
@@ -385,6 +484,7 @@ class CurrentGroupController extends GetxController {
     for (final message in messagesToAddOrUpdate) {
       dev.log('Storing message through synchronization: $message',
           name: 'Read');
+
       await _sqliteService.storeGroupMessage(
         groupKey: groupId,
         message: message,
@@ -392,18 +492,18 @@ class CurrentGroupController extends GetxController {
     }
 
     for (final message in messagesToUpdate) {
-      dev.log('Update message: $message', name: 'Group');
-      // final localMessage = localMessages.firstWhere(
-      //   (e) => e.timestamp == message.timestamp,
-      // );
-      // await _sqliteService.updateMessage2(
-      //   fields: ['local_image_uri', 'local_video_uri'],
-      //   values: [localMessage.localImagePath, localMessage.localVideoPath],
-      //   id: message.timestamp,
-      // );
-      await _sqliteService.updateGroupMessage(message: message);
+      await _sqliteService.updateGroupMessage2(
+        fields: ['content', 'read_by'],
+        values: [
+          message.text,
+          message.readBy.isEmpty ? null : message.readBy.join(','),
+        ],
+        id: message.timestamp,
+      );
     }
 
+    // dev.log('Synchronization complete, fetch local messages', name: 'Group');
     _messages.value = await _sqliteService.getGroupMessages(groupKey: groupId);
+    dev.log('Synchronization completed', name: 'Group');
   }
 }

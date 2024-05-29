@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:developer' as dev;
 
 import 'package:chat_box/model/message_model.dart';
-import 'package:chat_box/services/local_photo_service.dart';
+import 'package:chat_box/services/local_media_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path_provider/path_provider.dart';
@@ -207,14 +207,14 @@ class ChatRepository {
           'Deleting local image: ${message.localImagePath}',
           name: 'Image',
         );
-        await LocalPhotoService.deleteFile(message.localImagePath!);
+        await LocalMediaService.deleteFile(message.localImagePath!);
       }
       await _storage.ref('images/$chatKey/${message.timestamp}').delete();
     }
 
     if (message.videoUrl != null) {
       if (message.localVideoPath != null) {
-        await LocalPhotoService.deleteFile(message.localVideoPath!);
+        await LocalMediaService.deleteFile(message.localVideoPath!);
       }
       await _storage.ref('videos/$chatKey/${message.timestamp}').delete();
       if (message.videoThumbnailUrl != null) {

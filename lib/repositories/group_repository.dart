@@ -10,7 +10,7 @@ import 'package:uuid/uuid.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
 import '../model/group_typing_status.dart';
-import '../services/local_photo_service.dart';
+import '../services/local_media_service.dart';
 
 class GroupRepository {
   final _firestore = FirebaseFirestore.instance;
@@ -264,6 +264,23 @@ class GroupRepository {
     });
   }
 
+  Future<void> addReadBy({
+    required String groupId,
+    required String messageId,
+    required String userId,
+  }) async {
+    await _firestore
+        .collection('groups')
+        .doc(groupId)
+        .collection('messages')
+        .doc(messageId)
+        .update(
+      {
+        'read_by': FieldValue.arrayUnion([userId]),
+      },
+    );
+  }
+
   Future<void> deleteMessage({
     required String groupId,
     required GroupMessageModel message,
@@ -274,14 +291,14 @@ class GroupRepository {
           'Deleting local image: ${message.localImagePath}',
           name: 'Image',
         );
-        await LocalPhotoService.deleteFile(message.localImagePath!);
+        await LocalMediaService.deleteFile(message.localImagePath!);
       }
       await _storage.ref('group_images/$groupId/${message.timestamp}').delete();
     }
 
     if (message.videoUrl != null) {
       if (message.localVideoPath != null) {
-        await LocalPhotoService.deleteFile(message.localVideoPath!);
+        await LocalMediaService.deleteFile(message.localVideoPath!);
       }
       await _storage.ref('group_videos/$groupId/${message.timestamp}').delete();
       if (message.videoThumbnailUrl != null) {

@@ -4,9 +4,11 @@ import 'package:chat_box/controller/auth_controller.dart';
 import 'package:chat_box/controller/current_group_controller.dart';
 import 'package:chat_box/features/groups/screens/group_image_preview_screen.dart';
 import 'package:chat_box/features/groups/screens/group_video_preview_screen.dart';
+import 'package:chat_box/utils/image_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../constants/colors.dart';
@@ -240,7 +242,7 @@ class GroupChatInputField extends StatelessWidget {
     if (video != null) {
       chatController.selectedVideo = File(video.path);
       Get.to(
-        () => GroupVideoPreviewScreen(groupController:  chatController),
+        () => GroupVideoPreviewScreen(groupController: chatController),
       );
       // sendMessage();
     }
@@ -250,8 +252,20 @@ class GroupChatInputField extends StatelessWidget {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: source, imageQuality: 50);
     if (image != null) {
-      chatController.selectedImage = File(image.path);
-      Get.to(() => GroupImagePreviewScreen(groupController: chatController));
+      final croppedImage = await ImageUtils.cropImage(
+        imagePath: image.path,
+        aspectRatioPresets: [
+          CropAspectRatioPreset.square,
+          CropAspectRatioPreset.ratio3x2,
+          CropAspectRatioPreset.original,
+          CropAspectRatioPreset.ratio4x3,
+          CropAspectRatioPreset.ratio16x9
+        ],
+      );
+      if (croppedImage != null) {
+        chatController.selectedImage = File(croppedImage);
+        Get.to(() => GroupImagePreviewScreen(groupController: chatController));
+      }
     }
   }
 }

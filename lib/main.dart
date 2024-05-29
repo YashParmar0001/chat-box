@@ -1,5 +1,6 @@
 import 'package:chat_box/binding.dart';
 import 'package:chat_box/constants/app_theme.dart';
+import 'package:chat_box/core/ui/shell_screen.dart';
 import 'package:chat_box/features/auth/screens/create_profile_screen.dart';
 import 'package:chat_box/features/auth/screens/login_screen.dart';
 import 'package:chat_box/features/splash/splash_screen.dart';
@@ -31,9 +32,6 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.getTheme(),
       initialBinding: ChatBoxBinding(),
       initialRoute: '/splash',
-      // routerDelegate: router.routerDelegate,
-      // routeInformationParser: router.routeInformationParser,
-      // routeInformationProvider: router.routeInformationProvider,
       getPages: [
         GetPage(
           name: '/splash',
@@ -47,6 +45,10 @@ class MyApp extends StatelessWidget {
           name: '/create_profile',
           page: () => const CreateProfileScreen(),
         ),
+        GetPage(
+          name: '/shell',
+          page: () => const ShellScreen(),
+        )
       ],
     );
   }

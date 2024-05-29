@@ -19,7 +19,10 @@ class MyProfileScreen extends StatelessWidget {
       appBar: AppBar(
         actions: [
           IconButton(
-            onPressed: authController.logout,
+            onPressed: () => _showLogoutConfirmationDialog(
+              context,
+              authController,
+            ),
             icon: const Icon(
               Icons.logout_rounded,
               color: Colors.red,
@@ -136,6 +139,33 @@ class MyProfileScreen extends StatelessWidget {
               ),
         ),
       ],
+    );
+  }
+
+  void _showLogoutConfirmationDialog(
+    BuildContext context,
+    AuthController authController,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Warning'),
+          content: const Text(
+            'Are you sure you want to logout?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: Get.back,
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: authController.logout,
+              child: const Text('Ok'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

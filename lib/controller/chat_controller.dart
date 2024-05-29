@@ -29,13 +29,15 @@ class ChatController extends GetxController {
     super.onInit();
   }
 
-  void blockUser(String userId) {
+  Future<void> blockUser(String userId) async {
     final email = Get.find<AuthController>().email;
-    userRepository.blockUser(email!, userId);
+    await userRepository.blockUser(email!, userId);
+    Get.snackbar('User', 'User is blocked!');
   }
 
-  void unblockUser(String userId) {
+  Future<void> unblockUser(String userId) async {
     final email = Get.find<AuthController>().email;
-    userRepository.unblockUser(email!, userId);
+    await userRepository.unblockUser(email!, userId);
+    Get.snackbar('User', 'User is Unblocked!');
   }
 }

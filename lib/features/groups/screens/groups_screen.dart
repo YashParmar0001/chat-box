@@ -23,7 +23,7 @@ class GroupsScreen extends StatelessWidget {
         centerTitle: true,
         title: Text(
           'Groups',
-          style: Theme.of(context).textTheme.displayLarge?.copyWith(
+          style: Theme.of(context).textTheme.displayMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
         ),
@@ -90,63 +90,71 @@ class _Group extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 10,
-          horizontal: 10,
+        padding: const EdgeInsets.only(
+          left: 10,
+          right: 10,
+          top: 10,
         ),
-        child: Row(
+        child: Column(
           children: [
-            CachedNetworkImage(
-              imageUrl: group.groupProfilePicUrl ?? '',
-              placeholder: (context, url) {
-                return ClipOval(
-                  child: Image.asset(
-                    Assets.imagesUserGroup,
-                    fit: BoxFit.cover,
-                    width: 60,
-                    height: 60,
-                  ),
-                );
-              },
-              imageBuilder: (context, imageProvider) {
-                return ClipOval(
-                  child: Image(
-                    image: imageProvider,
-                    fit: BoxFit.cover,
-                    width: 60,
-                    height: 60,
-                  ),
-                );
-              },
-              errorWidget: (context, url, error) {
-                return ClipOval(
-                  child: Image.asset(
-                    Assets.imagesUserGroup,
-                    fit: BoxFit.cover,
-                    width: 60,
-                    height: 60,
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
               children: [
-                Text(
-                  group.name,
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
+                CachedNetworkImage(
+                  imageUrl: group.groupProfilePicUrl ?? '',
+                  placeholder: (context, url) {
+                    return ClipOval(
+                      child: Image.asset(
+                        Assets.iconsTeam,
+                        width: 60,
+                        height: 60,
                       ),
+                    );
+                  },
+                  imageBuilder: (context, imageProvider) {
+                    return ClipOval(
+                      child: Image(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                        width: 60,
+                        height: 60,
+                      ),
+                    );
+                  },
+                  errorWidget: (context, url, error) {
+                    return ClipOval(
+                      child: Image.asset(
+                        Assets.iconsTeam,
+                        width: 60,
+                        height: 60,
+                      ),
+                    );
+                  },
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  '${group.memberIds.length} Members',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.black.withOpacity(0.6),
-                      ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      group.name,
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      '${group.memberIds.length} Members',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            color: Colors.black.withOpacity(0.6),
+                          ),
+                    ),
+                  ],
                 ),
               ],
+            ),
+            const SizedBox(height: 10),
+            Container(
+              color: Colors.grey,
+              height: 1,
             ),
           ],
         ),

@@ -114,6 +114,7 @@ class GroupsController extends GetxController {
   }
 
   void closeSubscriptions() {
+    _groups.value = [];
     _groupsSubscription?.cancel();
   }
 }

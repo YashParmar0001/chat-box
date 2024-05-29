@@ -60,9 +60,11 @@ class _ChatScreenState extends State<ChatScreen> {
           final user = Get.find<ChatController>()
               .users
               .firstWhere((e) => e.email == widget.userId);
-          return GestureDetector(
+          return InkWell(
+            borderRadius: BorderRadius.circular(20),
             onTap: () => Get.to(() => UserProfileScreen(user: user)),
             child: Row(
+              mainAxisSize: MainAxisSize.max,
               children: [
                 CachedNetworkImage(
                   imageUrl: user.profilePicUrl ?? '',

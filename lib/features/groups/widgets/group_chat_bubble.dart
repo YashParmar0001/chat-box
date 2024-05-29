@@ -8,8 +8,8 @@ import 'package:chat_box/generated/assets.dart';
 import 'package:chat_box/model/group_message_model.dart';
 import 'package:chat_box/model/user_model.dart';
 import 'package:easy_image_viewer/easy_image_viewer.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -21,10 +21,12 @@ class GroupChatBubble extends StatelessWidget {
     required this.message,
     required this.isCurrentUser,
     required this.user,
+    required this.isRead,
   });
 
   final GroupMessageModel message;
   final bool isCurrentUser;
+  final bool isRead;
   final UserModel user;
 
   @override
@@ -111,8 +113,8 @@ class GroupChatBubble extends StatelessWidget {
                                   return Container(
                                     constraints: BoxConstraints(
                                       maxWidth:
-                                          MediaQuery.of(context).size.width *
-                                              0.6,
+                                      MediaQuery.of(context).size.width *
+                                          0.6,
                                     ),
                                     child: Text(
                                       message.text,
@@ -121,30 +123,30 @@ class GroupChatBubble extends StatelessWidget {
                                           .textTheme
                                           .bodyMedium
                                           ?.copyWith(
-                                            color: isCurrentUser
-                                                ? Colors.white
-                                                : Colors.black,
-                                          ),
+                                        color: isCurrentUser
+                                            ? Colors.white
+                                            : Colors.black,
+                                      ),
                                     ),
                                   );
                                 }
                               },
                             ),
-                            // if (isCurrentUser && isMediaMessage)
-                            //   Positioned(
-                            //     right: 5,
-                            //     bottom: 5,
-                            //     child: _buildTicks(),
-                            //   ),
+                            if (isCurrentUser && isMediaMessage)
+                              Positioned(
+                                right: 5,
+                                bottom: 5,
+                                child: _buildTicks(),
+                              ),
                           ],
                         ),
-                        // if (isCurrentUser && !isMediaMessage)
-                        //   Padding(
-                        //     padding: const EdgeInsets.only(
-                        //       left: 10,
-                        //     ),
-                        //     child: _buildTicks(),
-                        //   ),
+                        if (isCurrentUser && !isMediaMessage)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 10,
+                            ),
+                            child: _buildTicks(),
+                          ),
                       ],
                     ),
                   ),
@@ -156,8 +158,8 @@ class GroupChatBubble extends StatelessWidget {
                     child: Text(
                       DateFormat.jm().format(message.time),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey,
-                          ),
+                        color: Colors.grey,
+                      ),
                     ),
                   ),
                 ],
@@ -169,25 +171,13 @@ class GroupChatBubble extends StatelessWidget {
     );
   }
 
-  // Widget _buildTicks() {
-  //   return Builder(
-  //     builder: (context) {
-  //       if (message.isRead || message.isDelivered) {
-  //         return SvgPicture.asset(
-  //           Assets.iconsDoubleTick,
-  //           width: 20,
-  //           color: message.isRead ? Colors.white : AppColors.grayX11,
-  //         );
-  //       } else {
-  //         return SvgPicture.asset(
-  //           Assets.iconsSingleTick,
-  //           width: 15,
-  //           color: AppColors.grayX11,
-  //         );
-  //       }
-  //     },
-  //   );
-  // }
+  Widget _buildTicks() {
+    return SvgPicture.asset(
+      Assets.iconsDoubleTick,
+      width: 20,
+      color: isRead ? Colors.blue : AppColors.grayX11,
+    );
+  }
 
   Widget _buildProfileImage(BuildContext context) {
     const double size = 35;
@@ -269,29 +259,48 @@ class GroupChatBubble extends StatelessWidget {
         doubleTapZoomable: true,
         immersive: false,
       ),
-      child: Image(
-        image: imageProvider,
-        fit: BoxFit.cover,
-        width: 150,
-        height: 150,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress != null &&
-              loadingProgress.expectedTotalBytes != null) {
-            final percentage = loadingProgress.cumulativeBytesLoaded /
-                loadingProgress.expectedTotalBytes!;
-            if (percentage == 1) {
-              return child;
-            } else {
-              return CircularProgressIndicator(
-                value: percentage,
-                color: Colors.white,
-              );
-            }
-          } else {
-            return child;
-          }
-        },
-        errorBuilder: (context, error, stackTrace) => placeholder,
+      child: Stack(
+        children: [
+          Image(
+            image: imageProvider,
+            fit: BoxFit.cover,
+            width: 150,
+            height: 150,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress != null &&
+                  loadingProgress.expectedTotalBytes != null) {
+                final percentage = loadingProgress.cumulativeBytesLoaded /
+                    loadingProgress.expectedTotalBytes!;
+                if (percentage == 1) {
+                  return child;
+                } else {
+                  return CircularProgressIndicator(
+                    value: percentage,
+                    color: Colors.white,
+                  );
+                }
+              } else {
+                return child;
+              }
+            },
+            errorBuilder: (context, error, stackTrace) => placeholder,
+          ),
+          if (isCurrentUser)
+            Positioned.fill(
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black87,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -325,29 +334,48 @@ class GroupChatBubble extends StatelessWidget {
         );
       },
       child: (message.videoThumbnailUrl != null)
-          ? CachedNetworkImage(
-              imageUrl: message.videoThumbnailUrl!,
-              imageBuilder: (context, imageProvider) {
-                return Stack(
-                  children: [
-                    Image(
-                      image: imageProvider,
-                      fit: BoxFit.cover,
-                      // height: 150,
-                      width: 200,
-                    ),
-                    const Positioned.fill(
-                      child: Icon(
-                        Icons.play_arrow_rounded,
-                        color: Colors.white,
-                        size: 50,
+          ? Stack(
+              children: [
+                CachedNetworkImage(
+                  imageUrl: message.videoThumbnailUrl!,
+                  imageBuilder: (context, imageProvider) {
+                    return Stack(
+                      children: [
+                        Image(
+                          image: imageProvider,
+                          fit: BoxFit.cover,
+                          // height: 150,
+                          width: 200,
+                        ),
+                        const Positioned.fill(
+                          child: Icon(
+                            Icons.play_arrow_rounded,
+                            color: Colors.white,
+                            size: 50,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                  errorWidget: (context, url, error) => videoPlaceholder,
+                  placeholder: (context, url) => videoPlaceholder,
+                ),
+                if (isCurrentUser)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black87,
+                          ],
+                        ),
                       ),
                     ),
-                  ],
-                );
-              },
-              errorWidget: (context, url, error) => videoPlaceholder,
-              placeholder: (context, url) => videoPlaceholder,
+                  ),
+              ],
             )
           : videoPlaceholder,
     );

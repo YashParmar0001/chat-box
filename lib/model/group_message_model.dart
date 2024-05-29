@@ -11,6 +11,7 @@ class GroupMessageModel {
   final String? videoThumbnailUrl;
   String? localImagePath;
   String? localVideoPath;
+  final List<String> readBy;
 
   GroupMessageModel({
     required this.senderId,
@@ -22,6 +23,7 @@ class GroupMessageModel {
     this.videoThumbnailUrl,
     this.localImagePath,
     this.localVideoPath,
+    this.readBy = const [],
   });
 
   int get timestamp => time.millisecondsSinceEpoch;
@@ -31,8 +33,9 @@ class GroupMessageModel {
       identical(this, other) ||
       (other is GroupMessageModel &&
           runtimeType == other.runtimeType &&
-          timestamp == other.timestamp &&
-          text == other.text);
+          timestamp == other.timestamp); // &&
+  // text == other.text &&
+  // readBy.length == other.readBy.length);
 
   @override
   int get hashCode => timestamp.hashCode;
@@ -44,7 +47,7 @@ class GroupMessageModel {
 
   @override
   String toString() {
-    return 'GroupMessage{ text: $text}';
+    return 'GroupMessage{ text: $text, localImage: $localImagePath, localVideo: $localVideoPath}';
   }
 
   GroupMessageModel copyWith({
@@ -57,6 +60,7 @@ class GroupMessageModel {
     String? videoThumbnailUrl,
     String? localImagePath,
     String? localVideoPath,
+    List<String>? readBy,
   }) {
     return GroupMessageModel(
       senderId: senderId ?? this.senderId,
@@ -68,6 +72,7 @@ class GroupMessageModel {
       videoThumbnailUrl: videoThumbnailUrl ?? this.videoThumbnailUrl,
       localImagePath: localImagePath ?? this.localImagePath,
       localVideoPath: localVideoPath ?? this.localVideoPath,
+      readBy: readBy ?? this.readBy,
     );
   }
 
@@ -80,8 +85,7 @@ class GroupMessageModel {
       'image_url': imageUrl ?? '',
       'video_url': videoUrl ?? '',
       'video_thumbnail_url': videoThumbnailUrl ?? '',
-      'local_image_path': localImagePath ?? '',
-      'local_video_path': localVideoPath ?? '',
+      'read_by': readBy,
     };
   }
 
@@ -96,6 +100,7 @@ class GroupMessageModel {
       'video_thumbnail_url': videoThumbnailUrl ?? '',
       'local_image_path': localImagePath ?? '',
       'local_video_path': localVideoPath ?? '',
+      'read_by': readBy.isEmpty ? null : readBy.join(','),
     };
   }
 
@@ -110,11 +115,19 @@ class GroupMessageModel {
       imageUrl: map['image_url'] == '' ? null : map['image_url'],
       videoUrl: map['video_url'] == '' ? null : map['video_url'],
       videoThumbnailUrl:
-          map['video_thumbnail_url'] == '' ? null : map['video_thumbnail_url'],
+          map['video_thumbnail_url'] == '' || map['video_thumbnail_url'] == null
+              ? null
+              : map['video_thumbnail_url'],
       localImagePath:
-          map['local_image_path'] == '' ? null : map['local_image_path'],
+          map['local_image_path'] == '' || map['local_image_path'] == null
+              ? null
+              : map['local_image_path'],
       localVideoPath:
-          map['local_video_path'] == '' ? null : map['local_video_path'],
+      map['local_video_path'] == '' || map['local_video_path'] == null
+          ? null
+          : map['local_video_path'],
+      readBy:
+          (map['read_by'] as List<dynamic>).map((e) => e.toString()).toList(),
     );
   }
 }

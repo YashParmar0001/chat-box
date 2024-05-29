@@ -23,7 +23,7 @@ class GroupDetailsScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'Group Details',
-          style: Theme.of(context).textTheme.displayLarge?.copyWith(
+          style: Theme.of(context).textTheme.displayMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
         ),
@@ -62,37 +62,37 @@ class GroupDetailsScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 20,
-        ),
-        child: Obx(
-          () {
-            if (groupController.isFetchingGroupDetails) {
-              return const Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.myrtleGreen,
-                ),
-              );
-            } else {
-              final group = groupController.group;
-              if (group != null) {
-                return Column(
-                  children: [
-                    const SizedBox(height: 30),
-                    ProfilePhoto(
-                      url: group.groupProfilePicUrl,
-                      dimension: 100,
+      body: Obx(
+        () {
+          if (groupController.isFetchingGroupDetails) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.myrtleGreen,
+              ),
+            );
+          } else {
+            final group = groupController.group;
+            if (group != null) {
+              return Column(
+                children: [
+                  const SizedBox(height: 30),
+                  ProfilePhoto(
+                    url: group.groupProfilePicUrl,
+                    dimension: 100,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    group.name,
+                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
                     ),
-                    const SizedBox(height: 20),
-                    Text(
-                      group.name,
-                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                    const SizedBox(height: 20),
-                    Column(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
@@ -115,47 +115,49 @@ class GroupDetailsScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 30),
-                    Row(
+                  ),
+                  const SizedBox(height: 30),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                    ),
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           group.memberIds.length.toString(),
-                          style: Theme.of(context)
-                              .textTheme
-                              .displayMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.displayMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
                         const SizedBox(width: 10),
                         Text(
                           'Member${group.memberIds.length > 1 ? 's' : ''}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .displaySmall
-                              ?.copyWith(
-                                color: AppColors.myrtleGreen,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.displaySmall?.copyWith(
+                                    color: AppColors.myrtleGreen,
+                                  ),
                         ),
                         const Spacer(),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                  ),
+                  const SizedBox(height: 10),
+                  if ((groupController.group?.createdByUserId ?? '') ==
+                      authController.email!)
                     _buildAddMember(context),
-                    const SizedBox(height: 20),
-                    MembersList(groupController: groupController),
-                  ],
-                );
-              } else {
-                return Text(
-                  'Error loading Group details',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                );
-              }
+                  MembersList(groupController: groupController),
+                ],
+              );
+            } else {
+              return Text(
+                'Error loading Group details',
+                style: Theme.of(context).textTheme.headlineSmall,
+              );
             }
-          },
-        ),
+          }
+        },
       ),
       floatingActionButton: Obx(
         () {
@@ -185,29 +187,35 @@ class GroupDetailsScreen extends StatelessWidget {
       onTap: () => Get.to(
         () => AddMembersScreen(controller: groupController),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: const ShapeDecoration(
-              shape: CircleBorder(),
-              color: AppColors.myrtleGreen,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 5,
+          vertical: 5,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: const ShapeDecoration(
+                shape: CircleBorder(),
+                color: AppColors.myrtleGreen,
+              ),
+              child: const Icon(
+                Icons.person_add_alt_outlined,
+                color: Colors.white,
+                size: 25,
+              ),
             ),
-            child: const Icon(
-              Icons.person_add_alt_outlined,
-              color: Colors.white,
-              size: 25,
+            const SizedBox(width: 10),
+            Text(
+              'Add Member',
+              style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            'Add Member',
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

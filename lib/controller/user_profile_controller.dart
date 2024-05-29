@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:io';
 
-import 'package:chat_box/core/ui/shell_screen.dart';
 import 'package:chat_box/model/user_model.dart';
 import 'package:chat_box/repositories/user_repository.dart';
 import 'package:get/get.dart';
@@ -29,11 +28,11 @@ class UserProfileController extends GetxController {
 
   @override
   void onInit() {
-    final worker = ever(_currentUserProfile, (user) {
+    ever(_currentUserProfile, (user) {
       if (user != null) {
         if (Get.currentRoute == '/create_profile' ||
             Get.currentRoute == '/login') {
-          Get.off(() => const ShellScreen());
+          Get.offNamed('/shell');
         }
       }
     });

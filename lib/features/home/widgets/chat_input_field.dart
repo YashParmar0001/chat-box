@@ -7,9 +7,11 @@ import 'package:chat_box/generated/assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../constants/colors.dart';
+import '../../../utils/image_utils.dart';
 
 class ChatInputField extends StatelessWidget {
   const ChatInputField({super.key, required this.chatController});
@@ -235,8 +237,20 @@ class ChatInputField extends StatelessWidget {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: source, imageQuality: 50);
     if (image != null) {
-      chatController.selectedImage = File(image.path);
-      Get.to(() => ImagePreviewScreen(chatController: chatController));
+      final croppedImage = await ImageUtils.cropImage(
+        imagePath: image.path,
+        aspectRatioPresets: [
+          CropAspectRatioPreset.square,
+          CropAspectRatioPreset.ratio3x2,
+          CropAspectRatioPreset.original,
+          CropAspectRatioPreset.ratio4x3,
+          CropAspectRatioPreset.ratio16x9
+        ],
+      );
+      if (croppedImage != null) {
+        chatController.selectedImage = File(croppedImage);
+        Get.to(() => ImagePreviewScreen(chatController: chatController));
+      }
     }
   }
 }

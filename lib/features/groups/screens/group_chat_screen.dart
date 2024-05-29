@@ -64,20 +64,21 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           final group = groupsController.groups
               .firstWhere((e) => e.id == widget.groupChatController.groupId);
           final typingStatuses = widget.groupChatController.typingStatuses
-              .where(
-                (e) => e.isTyping == true,
-              )
+              .where((e) => e.isTyping)
               .toList();
           final users = Get.find<ChatController>().users;
 
           final currentUserId = Get.find<AuthController>().email!;
-          final typingUsers = typingStatuses.where(
-            (e) => e.userId != currentUserId,
-          ).toList();
+          final typingUsers = typingStatuses
+              .where(
+                (e) => e.userId != currentUserId,
+              )
+              .toList();
           final typingUser = typingUsers.isNotEmpty
               ? users.firstWhere((e) => e.email == typingStatuses.first.userId)
               : null;
-          return GestureDetector(
+          return InkWell(
+            borderRadius: BorderRadius.circular(20),
             onTap: () => Get.to(
               () => GroupDetailsScreen(
                 groupController: widget.groupChatController,
@@ -90,7 +91,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   placeholder: (context, url) {
                     return ClipOval(
                       child: Image.asset(
-                        Assets.imagesUserGroup,
+                        Assets.iconsTeam,
                         fit: BoxFit.cover,
                         width: 50,
                         height: 50,
@@ -110,7 +111,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   errorWidget: (context, url, error) {
                     return ClipOval(
                       child: Image.asset(
-                        Assets.imagesUserProfile,
+                        Assets.iconsTeam,
                         fit: BoxFit.cover,
                         width: 50,
                         height: 50,
@@ -219,11 +220,20 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             final message = sectionMessages[index];
             final isCurrentUser =
                 Get.find<AuthController>().email == message.senderId;
+            // dev.log(
+            //   'Message: ${message.text} |'
+            //   'Read by: ${message.readBy.length} | '
+            //   'Group members: ${widget.groupChatController.group?.memberIds.length ?? 0}',
+            //   name: 'GroupChat',
+            // );
+            final isRead = message.readBy.length >=
+                (widget.groupChatController.group?.memberIds.length ?? 0) - 1;
 
             return Obx(
               () => GroupChatBubble(
                 message: sectionMessages[index],
                 isCurrentUser: isCurrentUser,
+                isRead: isRead,
                 user: Get.find<ChatController>().users.firstWhere(
                   (e) => e.email == message.senderId,
                   orElse: () {

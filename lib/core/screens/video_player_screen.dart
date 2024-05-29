@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:chat_box/constants/colors.dart';
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
@@ -51,7 +52,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(),
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        leading: IconButton(
+          onPressed: Get.back,
+          icon: const Icon(Icons.arrow_back_outlined, color: Colors.white,),
+        ),
+      ),
       body: Center(
         child: _controller.value.isInitialized
             ? AspectRatio(

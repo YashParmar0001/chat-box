@@ -11,6 +11,7 @@ class CustomTextField extends StatelessWidget {
     this.textCapitalization = TextCapitalization.none,
     this.textInputAction = TextInputAction.done,
     required this.controller,
+    this.suffixIcon,
   });
 
   final TextEditingController controller;
@@ -19,6 +20,7 @@ class CustomTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextCapitalization textCapitalization;
   final TextInputAction textInputAction;
+  final Widget? suffixIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -33,15 +35,20 @@ class CustomTextField extends StatelessWidget {
         ),
         TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            focusedBorder: UnderlineInputBorder(
+          decoration: InputDecoration(
+            focusedBorder: const UnderlineInputBorder(
               borderSide: BorderSide(color: AppColors.myrtleGreen),
             ),
-            contentPadding: EdgeInsets.symmetric(
+            contentPadding: const EdgeInsets.symmetric(
               horizontal: 0,
-              vertical: 0,
+              vertical: 10,
             ),
+            suffixIcon: suffixIcon,
+            suffixIconConstraints: const BoxConstraints(
+              maxWidth: 40,
+            )
           ),
+          textAlignVertical: TextAlignVertical.bottom,
           cursorColor: AppColors.myrtleGreen,
           style: Theme.of(context).textTheme.headlineSmall,
           obscureText: obscureText,

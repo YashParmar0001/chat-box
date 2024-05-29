@@ -10,11 +10,15 @@ class Assets {
   static const String iconsCamera = 'assets/icons/camera.svg';
   static const String iconsCameraVideo = 'assets/icons/camera-video.svg';
   static const String iconsDoubleTick = 'assets/icons/double_tick.svg';
+  static const String iconsEyeClose = 'assets/icons/eye_close.svg';
+  static const String iconsEyeOpen = 'assets/icons/eye_open.svg';
+  static const String iconsGroup = 'assets/icons/group.png';
   static const String iconsHome = 'assets/icons/home.svg';
   static const String iconsImage = 'assets/icons/image.svg';
   static const String iconsMessages = 'assets/icons/messages.svg';
   static const String iconsSend = 'assets/icons/send.svg';
   static const String iconsSingleTick = 'assets/icons/single_tick.svg';
+  static const String iconsTeam = 'assets/icons/team.png';
   static const String iconsUser = 'assets/icons/user.svg';
   static const String iconsUserGroup = 'assets/icons/user-group.svg';
   static const String iconsVideo = 'assets/icons/video.svg';

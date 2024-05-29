@@ -5,11 +5,15 @@ import 'package:chat_box/constants/colors.dart';
 import 'package:chat_box/controller/auth_controller.dart';
 import 'package:chat_box/controller/user_profile_controller.dart';
 import 'package:chat_box/core/ui/custom_text_field.dart';
+import 'package:chat_box/core/ui/filled_icon_button.dart';
 import 'package:chat_box/core/ui/primary_button.dart';
+import 'package:chat_box/core/ui/profile_photo.dart';
 import 'package:chat_box/generated/assets.dart';
 import 'package:chat_box/model/user_model.dart';
+import 'package:chat_box/utils/image_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -47,50 +51,46 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Update profile',
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                _buildProfilePictureSection(),
-                const SizedBox(height: 30),
-                CustomTextField(
-                  label: 'Your name',
-                  controller: nameController,
-                  textCapitalization: TextCapitalization.words,
-                ),
-                const SizedBox(height: 20),
-                CustomTextField(
-                  label: 'Your bio',
-                  controller: bioController,
-                  textCapitalization: TextCapitalization.sentences,
-                ),
-                const SizedBox(height: 70),
-                Obx(() {
-                  if (userProfileController.isUpdatingUserProfile) {
-                    return const CircularProgressIndicator(
-                      color: AppColors.myrtleGreen,
-                    );
-                  } else {
-                    return PrimaryButton(
-                      title: 'Update Profile',
-                      onPressed: _createUserProfile,
-                    );
-                  }
-                }),
-              ],
-            ),
+      appBar: AppBar(
+        title: Text(
+          'Update Profile',
+          style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              _buildProfilePictureSection(),
+              const SizedBox(height: 30),
+              CustomTextField(
+                label: 'Your name',
+                controller: nameController,
+                textCapitalization: TextCapitalization.words,
+              ),
+              const SizedBox(height: 20),
+              CustomTextField(
+                label: 'Your bio',
+                controller: bioController,
+                textCapitalization: TextCapitalization.sentences,
+              ),
+              const SizedBox(height: 70),
+              Obx(() {
+                if (userProfileController.isUpdatingUserProfile) {
+                  return const CircularProgressIndicator(
+                    color: AppColors.myrtleGreen,
+                  );
+                } else {
+                  return PrimaryButton(
+                    title: 'Update Profile',
+                    onPressed: _createUserProfile,
+                  );
+                }
+              }),
+            ],
           ),
         ),
       ),
@@ -121,10 +121,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     fit: BoxFit.cover,
                   )
                 : (oldProfileUrl != null)
-                    ? Image.network(
-                        oldProfileUrl!,
-                        fit: BoxFit.cover,
-                      )
+                    ? ProfilePhoto(url: oldProfileUrl)
                     : Image.asset(
                         Assets.imagesUserProfile,
                         fit: BoxFit.cover,
@@ -132,26 +129,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ),
         Positioned(
-          right: 0,
+          right: 10,
           bottom: 0,
-          child: IconButton.filled(
-            onPressed: _pickImageFromGallery,
-            icon: const Icon(Icons.add_photo_alternate_outlined),
-            style: IconButton.styleFrom(
-              backgroundColor: AppColors.myrtleGreen,
-            ),
+          child: FilledIconButton(
+            onTap: _pickImageFromGallery,
+            backgroundColor: AppColors.myrtleGreen,
+            icon: Icons.add_photo_alternate_outlined,
           ),
         ),
         if (_image != null || oldProfileUrl != null)
           Positioned(
             top: 0,
-            right: 0,
-            child: IconButton.filled(
-              onPressed: _removeImage,
-              icon: const Icon(Icons.delete),
-              style: IconButton.styleFrom(
-                backgroundColor: AppColors.grayX11,
-              ),
+            right: 10,
+            child: FilledIconButton(
+              onTap: _removeImage,
+              icon: Icons.delete_rounded,
+              backgroundColor: Colors.grey,
             ),
           ),
       ],
@@ -190,8 +183,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      final croppedImage = await ImageUtils.cropImage(
+        imagePath: image.path,
+        lockAspectRatio: true,
+        aspectRatioPresets: [CropAspectRatioPreset.square],
+        initialAspectRatio: CropAspectRatioPreset.square,
+      );
       setState(() {
-        _image = File(image.path);
+        if (croppedImage != null) {
+          _image = File(croppedImage);
+        }
       });
     }
   }

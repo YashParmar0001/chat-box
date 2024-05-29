@@ -20,6 +20,7 @@ class LogInScreen extends StatefulWidget {
 class _LogInScreenState extends State<LogInScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  bool _showPassword = false;
 
   @override
   void dispose() {
@@ -93,7 +94,19 @@ class _LogInScreenState extends State<LogInScreen> {
                 CustomTextField(
                   controller: passwordController,
                   label: 'Password',
-                  obscureText: true,
+                  obscureText: !_showPassword,
+                  suffixIcon: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _showPassword = !_showPassword;
+                      });
+                    },
+                    child: SvgPicture.asset(
+                      (_showPassword)
+                          ? Assets.iconsEyeOpen
+                          : Assets.iconsEyeClose,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 50),
                 Obx(() {
@@ -137,6 +150,7 @@ class _LogInScreenState extends State<LogInScreen> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 20),
                       ],
                     );
                   }

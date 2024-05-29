@@ -1,5 +1,4 @@
 import 'package:chat_box/controller/current_chat_controller.dart';
-import 'package:chat_box/controller/current_group_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -21,7 +20,13 @@ class ImagePreviewScreen extends StatelessWidget {
       },
       child: Scaffold(
         backgroundColor: Colors.black,
-        appBar: AppBar(),
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          leading: IconButton(
+            onPressed: Get.back,
+            icon: const Icon(Icons.arrow_back_outlined, color: Colors.white,),
+          ),
+        ),
         body: PhotoView(
           imageProvider: FileImage(chatController.selectedImage!),
         ),

@@ -20,7 +20,13 @@ class GroupImagePreviewScreen extends StatelessWidget {
       },
       child: Scaffold(
         backgroundColor: Colors.black,
-        appBar: AppBar(),
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          leading: IconButton(
+            onPressed: Get.back,
+            icon: const Icon(Icons.arrow_back_outlined, color: Colors.white,),
+          ),
+        ),
         body: PhotoView(
           imageProvider: FileImage(groupController.selectedImage!),
         ),

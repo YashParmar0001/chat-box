@@ -25,105 +25,107 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
       appBar: AppBar(
         title: Text(
           'Add Members',
-          style: Theme.of(context).textTheme.displayLarge?.copyWith(
+          style: Theme.of(context).textTheme.displayMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 20,
-        ),
-        child: Column(
-          children: [
-            Obx(
-              () {
-                final users = Get.find<ChatController>()
-                    .users
-                    .where(
-                      (e) => !widget.controller.group!.memberIds.contains(
-                        e.email,
-                      ),
-                    )
-                    .toList();
-
-                if (users.isEmpty) {
-                  return Center(
-                    child: Text(
-                      'There are no users to add to this group',
-                      style: Theme.of(context).textTheme.headlineMedium,
+      body: Column(
+        children: [
+          Obx(
+            () {
+              final users = Get.find<ChatController>()
+                  .users
+                  .where(
+                    (e) => !widget.controller.group!.memberIds.contains(
+                      e.email,
                     ),
-                  );
-                }else {
-                  return Expanded(
-                    child: ListView.builder(
-                      itemCount: users.length,
-                      itemBuilder: (context, index) {
-                        final user = users[index];
-                        return Padding(
+                  )
+                  .toList();
+
+              if (users.isEmpty) {
+                return Center(
+                  child: Text(
+                    'There are no users to add to this group',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                );
+              } else {
+                return Expanded(
+                  child: ListView.builder(
+                    itemCount: users.length,
+                    itemBuilder: (context, index) {
+                      final user = users[index];
+                      return InkWell(
+                        splashFactory: NoSplash.splashFactory,
+                        onTap: () {
+                          setState(() {
+                            if (userIds.contains(user.email)) {
+                              userIds.remove(user.email);
+                            } else {
+                              userIds.add(user.email);
+                            }
+                          });
+                        },
+                        child: Padding(
                           padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
                             vertical: 5,
                           ),
-                          child: InkWell(
-                            splashFactory: NoSplash.splashFactory,
-                            onTap: () {
-                              setState(() {
-                                if (userIds.contains(user.email)) {
-                                  userIds.remove(user.email);
-                                } else {
-                                  userIds.add(user.email);
-                                }
-                              });
-                            },
-                            child: Row(
-                              children: [
-                                ProfilePhoto(
-                                  url: user.profilePicUrl,
-                                  dimension: 50,
+                          child: Row(
+                            children: [
+                              ProfilePhoto(
+                                url: user.profilePicUrl,
+                                dimension: 50,
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                user.name,
+                                style: Theme.of(context).textTheme.displaySmall,
+                              ),
+                              const Spacer(),
+                              RoundCheckBox(
+                                animationDuration: const Duration(
+                                  milliseconds: 100,
                                 ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  user.name,
-                                  style: Theme.of(context).textTheme.displaySmall,
-                                ),
-                                const Spacer(),
-                                RoundCheckBox(
-                                  animationDuration: const Duration(
-                                    milliseconds: 100,
-                                  ),
-                                  isChecked: userIds.contains(user.email),
-                                  size: 30,
-                                  onTap: (selected) {
-                                    if (selected != null) {
-                                      if (selected) {
-                                        userIds.add(user.email);
-                                      } else {
-                                        userIds
-                                            .removeWhere((e) => e == user.email);
-                                      }
+                                isChecked: userIds.contains(user.email),
+                                size: 30,
+                                onTap: (selected) {
+                                  if (selected != null) {
+                                    if (selected) {
+                                      userIds.add(user.email);
+                                    } else {
+                                      userIds.removeWhere(
+                                        (e) => e == user.email,
+                                      );
                                     }
-                                  },
-                                ),
-                              ],
-                            ),
+                                  }
+                                },
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                    ),
-                  );
-                }
-              },
-            ),
-            if (userIds.isNotEmpty)
-              PrimaryButton(
+                        ),
+                      );
+                    },
+                  ),
+                );
+              }
+            },
+          ),
+          if (userIds.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+              ),
+              child: PrimaryButton(
                 title: 'Continue',
                 onPressed: () {
                   widget.controller.addGroupMembers(members: userIds);
                 },
               ),
-            const SizedBox(height: 10),
-          ],
-        ),
+            ),
+          const SizedBox(height: 10),
+        ],
       ),
     );
   }

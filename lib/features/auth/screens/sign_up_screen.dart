@@ -19,6 +19,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
 
   @override
   void dispose() {
@@ -93,14 +95,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 CustomTextField(
                   controller: passwordController,
                   label: 'Password',
-                  obscureText: true,
+                  obscureText: !_showPassword,
                   textInputAction: TextInputAction.next,
+                  suffixIcon: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _showPassword = !_showPassword;
+                      });
+                    },
+                    child: SvgPicture.asset(
+                      (_showPassword)
+                          ? Assets.iconsEyeOpen
+                          : Assets.iconsEyeClose,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 10),
                 CustomTextField(
                   controller: confirmPasswordController,
                   label: 'Confirm password',
-                  obscureText: true,
+                  obscureText: !_showConfirmPassword,
+                  suffixIcon: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _showConfirmPassword = !_showConfirmPassword;
+                      });
+                    },
+                    child: SvgPicture.asset(
+                      (_showConfirmPassword)
+                          ? Assets.iconsEyeOpen
+                          : Assets.iconsEyeClose,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 40),
                 Obx(() {
@@ -153,6 +179,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 20),
               ],
             ),
           ),

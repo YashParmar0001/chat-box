@@ -20,7 +20,7 @@ class PrimaryButton extends StatelessWidget {
         decoration: ShapeDecoration(
           color: AppColors.myrtleGreen,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(7),
           ),
         ),
         padding: const EdgeInsets.symmetric(

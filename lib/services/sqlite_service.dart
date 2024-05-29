@@ -44,7 +44,8 @@ class SqliteService {
           'local_image_path TEXT NULL, '
           'video_url TEXT NULL, '
           'video_thumbnail_url TEXT NULL, '
-          'local_video_path TEXT NULL'
+          'local_video_path TEXT NULL, '
+          'read_by TEXT NULL'
           ')',
         );
       },
@@ -85,7 +86,15 @@ class SqliteService {
       offset: offset,
       limit: _messageLimit,
     );
-    return response.map((e) => GroupMessageModel.fromMap(e)).toList();
+    return response.map((e) {
+      final data = Map<String, dynamic>.from(e);
+      if (e['read_by'] == null) {
+        data['read_by'] = [];
+      } else {
+        data['read_by'] = e['read_by'].toString().split(',');
+      }
+      return GroupMessageModel.fromMap(data);
+    }).toList();
   }
 
   Future<int> storeMessage({
@@ -146,6 +155,25 @@ class SqliteService {
       data,
       where: 'message_id = ?',
       whereArgs: [message.timestamp],
+    );
+    return response;
+  }
+
+  Future<int> updateGroupMessage2({
+    required List<String> fields,
+    required List<dynamic> values,
+    required int id,
+  }) async {
+    final data = <String, dynamic>{};
+    for (int i = 0; i < fields.length; i++) {
+      data.addAll({fields[i]: values[i]});
+    }
+    final db = await initializeDB();
+    final response = await db.update(
+      'group_messages',
+      data,
+      where: 'message_id = ?',
+      whereArgs: [id],
     );
     return response;
   }

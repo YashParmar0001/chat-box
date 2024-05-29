@@ -1,3 +1,4 @@
+import 'package:chat_box/controller/chat_controller.dart';
 import 'package:chat_box/controller/current_group_controller.dart';
 import 'package:chat_box/model/user_model.dart';
 import 'package:flutter/material.dart';
@@ -14,28 +15,33 @@ class MembersList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final members = groupController.getGroupMembers();
+    // final members = groupController.getGroupMembers();
     final currentUserId = Get.find<AuthController>().email!;
 
-    return ListView.builder(
-      itemCount: members.length,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) {
-        final member = members[index];
+    return Obx(() {
+      final members = groupController.getGroupMembers(
+        Get.find<ChatController>().users,
+      );
 
-        return Padding(
-          padding: const EdgeInsets.only(
-            bottom: 15,
-          ),
-          child: GestureDetector(
-            child: InkWell(
-              onLongPress: () {
-                if (currentUserId == groupController.group!.createdByUserId &&
-                    currentUserId != member.email) {
-                  _showRemoveMemberDialog(context, member);
-                }
-              },
+      return ListView.builder(
+        itemCount: members.length,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemBuilder: (context, index) {
+          final member = members[index];
+
+          return InkWell(
+            onLongPress: () {
+              if (currentUserId == groupController.group!.createdByUserId &&
+                  currentUserId != member.email) {
+                _showRemoveMemberDialog(context, member);
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 5,
+                vertical: 5,
+              ),
               child: Row(
                 children: [
                   Stack(
@@ -72,10 +78,12 @@ class MembersList extends StatelessWidget {
                       const SizedBox(height: 5),
                       Text(
                         member.bio,
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: Colors.black.withOpacity(0.7),
-                                ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(
+                              color: Colors.black.withOpacity(0.7),
+                            ),
                       ),
                     ],
                   ),
@@ -91,10 +99,10 @@ class MembersList extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-        );
-      },
-    );
+          );
+        },
+      );
+    });
   }
 
   void _showRemoveMemberDialog(BuildContext context, UserModel user) {

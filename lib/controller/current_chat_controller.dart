@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:chat_box/controller/chat_controller.dart';
 import 'package:chat_box/model/message_model.dart';
 import 'package:chat_box/repositories/chat_repository.dart';
-import 'package:chat_box/services/local_photo_service.dart';
+import 'package:chat_box/services/local_media_service.dart';
 import 'package:chat_box/services/sqlite_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -33,8 +33,7 @@ class CurrentChatController extends GetxController {
 
   List<MessageModel> get messages => _messages;
 
-  final _listeners = <StreamSubscription>[].obs;
-  QueryDocumentSnapshot<Map<String, dynamic>>? start, end;
+  QueryDocumentSnapshot<Map<String, dynamic>>? start;
 
   final String currentUserId;
   final String otherUserId;
@@ -91,7 +90,8 @@ class CurrentChatController extends GetxController {
     return chatKey;
   }
 
-  StreamSubscription? typingStatusSubscription;
+  StreamSubscription? _typingStatusSubscription;
+  StreamSubscription? _messagesSubscription;
   Timer? typingTimer;
 
   @override
@@ -118,14 +118,13 @@ class CurrentChatController extends GetxController {
 
   @override
   void onClose() {
-    for (var element in _listeners) {
-      element.cancel();
-    }
+    _messagesSubscription?.cancel();
+    _typingStatusSubscription?.cancel();
     super.onClose();
   }
 
   void listenToTypingStatus() {
-    typingStatusSubscription =
+    _typingStatusSubscription =
         chatRepository.getTypingStatus(chatKey, otherUserId).listen(
       (isTyping) {
         _isTyping.value = isTyping;
@@ -137,7 +136,7 @@ class CurrentChatController extends GetxController {
     _messages.value = await sqliteService.getMessages(chatKey: chatKey);
     dev.log('Local messages: $messages', name: 'LocalStorage');
 
-    startListeningForMessages(false);
+    startListeningForMessages();
   }
 
   Future<void> getMoreMessages() async {
@@ -156,14 +155,12 @@ class CurrentChatController extends GetxController {
     // startListeningForMessages(true);
   }
 
-  void startListeningForMessages(bool fetchMore) {
+  void startListeningForMessages() {
     _isLoadingMessages.value = true;
     final ref =
         _firestore.collection('chats').doc(chatKey).collection('messages');
 
     var query = ref.orderBy('time', descending: true);
-
-    if (fetchMore) query = query.startAfterDocument(start!);
 
     query.limit(_messageLimit).get().then((snapshots) async {
       dev.log(
@@ -175,29 +172,25 @@ class CurrentChatController extends GetxController {
         _isLoadingMessages.value = false;
         return;
       }
-      if (fetchMore) end = start;
+
       if (snapshots.docs.isNotEmpty) start = snapshots.docs.last;
 
       var query = ref.orderBy('time');
 
-      if (!fetchMore && snapshots.docs.isNotEmpty) {
-        dev.log('Synchronizing messages with local database', name: 'Chat');
-        await synchronizeWithLocalDB(snapshots.docs);
-      }
+      synchronizeWithLocalDB(snapshots.docs);
 
       if (start != null) query = query.startAtDocument(start!);
 
-      if (messages.isNotEmpty && snapshots.docs.isEmpty) {
-        _isLoadingMessages.value = false;
-        return;
-      }
+      // if (messages.isNotEmpty && snapshots.docs.isEmpty) {
+      //   _isLoadingMessages.value = false;
+      //   return;
+      // }
 
-      if (fetchMore) query = query.endBeforeDocument(end!);
-
-      final listener = query.snapshots().listen((event) async {
+      _messagesSubscription = query.snapshots().listen((event) async {
         for (var change in event.docChanges) {
+          MessageModel message = MessageModel.fromMap(change.doc.data()!);
+
           if (change.type == DocumentChangeType.added) {
-            MessageModel message = MessageModel.fromMap(change.doc.data()!);
             if (message.senderId != currentUserId && !message.isRead) {
               chatRepository.changeMessageToRead(
                 chatKey,
@@ -213,63 +206,80 @@ class CurrentChatController extends GetxController {
               _messages.insert(0, message);
               // _messages.value = Set<MessageModel>.from(_messages).toList();
 
-              final imagePath = await processLocalImagePath(message);
-              final videoPath = await processLocalVideoPath(message);
-
-              final existingMessageIndex = messages.indexWhere(
-                (msg) => msg.timestamp == message.timestamp,
-              );
-
-              message = messages[existingMessageIndex].copyWith(
-                localImagePath: imagePath,
-                localVideoPath: videoPath,
-              );
-              if (existingMessageIndex != -1) {
-                _messages[existingMessageIndex] = message;
-              }
-
-              // Store message locally
-              dev.log(
-                'Storing message through doc changes: $message',
-                name: 'Read',
-              );
               sqliteService.storeMessage(message: message, chatKey: chatKey);
 
-              if (message.localImagePath != null ||
-                  message.localVideoPath != null) {
-                final existingMessageIndex = messages.indexWhere(
-                  (msg) => message.timestamp == msg.timestamp,
+              if (_messages.contains(message)) {
+                final index = messages.indexWhere(
+                      (msg) => msg.timestamp == message.timestamp,
                 );
+                final oldMessage = messages[index];
 
-                if (existingMessageIndex != -1) {
-                  _messages[existingMessageIndex] = message;
+                // Check for media
+                if (oldMessage.imageUrl != null &&
+                    oldMessage.localImagePath == null) {
+                  dev.log('Processing image path for message', name: 'Chat');
+                  oldMessage.localImagePath ??=
+                  await processLocalImagePath(oldMessage);
+                  if (oldMessage.localImagePath != null) {
+                    // Update UI
+                    if (index != -1) {
+                      _messages[index] = _messages[index].copyWith(
+                        localImagePath: oldMessage.localImagePath,
+                      );
+                    }
+
+                    // Update local message
+                    sqliteService.updateMessage2(
+                      fields: ['local_image_uri'],
+                      values: [oldMessage.localImagePath],
+                      id: oldMessage.timestamp,
+                    );
+                  }
+                } else if (oldMessage.videoUrl != null &&
+                    oldMessage.localVideoPath == null) {
+                  oldMessage.localVideoPath ??= await processLocalVideoPath(oldMessage);
+                  if (oldMessage.localVideoPath != null) {
+                    // Update UI
+                    if (index != -1) {
+                      _messages[index] = _messages[index].copyWith(
+                        localVideoPath: oldMessage.localVideoPath,
+                      );
+                    }
+
+                    // Update local message
+                    sqliteService.updateMessage2(
+                      fields: ['local_video_uri'],
+                      values: [message.localVideoPath],
+                      id: message.timestamp,
+                    );
+                  }
                 }
               }
             }
           } else if (change.type == DocumentChangeType.modified) {
             dev.log('Message modified', name: 'Chat');
 
-            MessageModel messageModel =
-                MessageModel.fromMap(change.doc.data()!);
             final existingMessageIndex = messages.indexWhere(
-              (message) => message.timestamp == messageModel.timestamp,
+              (msg) => msg.timestamp == message.timestamp,
             );
 
             if (existingMessageIndex != -1) {
-              _messages[existingMessageIndex] = messageModel;
-            } else {
-              _messages.add(messageModel);
+              _messages[existingMessageIndex] =
+                  _messages[existingMessageIndex].copyWith(
+                text: message.text,
+                isRead: message.isRead,
+              );
             }
 
-            // sqliteService.updateMessage(message: messageModel);
-            sqliteService.updateMessage3(message: messageModel);
+            sqliteService.updateMessage2(
+              fields: ['content', 'is_read'],
+              values: [message.text, message.isRead ? 1 : 0],
+              id: message.timestamp,
+            );
+            // sqliteService.updateMessage3(message: messageModel);
           } else if (change.type == DocumentChangeType.removed) {
-            // dev.log(
-            //   'Message deleted by ${change.doc.data()!['sender_id']}',
-            //   name: 'Chat',
-            // );
+            dev.log('Message removed: ${message.text}', name: 'Chat');
             if (currentUserId != (change.doc.data()!['sender_id']).toString()) {
-              // dev.log('Deleting other user message', name: 'LocalStorage');
               _messages.removeWhere(
                 (e) => e.timestamp.toString() == change.doc.id,
               );
@@ -277,10 +287,7 @@ class CurrentChatController extends GetxController {
             }
           }
         }
-        // _messages.sort((a, b) => b.timestamp - a.timestamp);
-        // _cachePhotosAndAssignMessages();
       });
-      _listeners.add(listener);
       _isLoadingMessages.value = false;
     });
   }
@@ -323,9 +330,9 @@ class CurrentChatController extends GetxController {
         video: selectedVideo,
       );
       messageTextController.clear();
-      if (_listeners.isEmpty) {
-        startListeningForMessages(false);
-      }
+      // if (_listeners.isEmpty) {
+      //   startListeningForMessages(false);
+      // }
     } catch (e) {
       dev.log('Got error: $e', name: 'Chat');
       Get.snackbar('Chat', 'Something went wrong while sending the message!');
@@ -356,12 +363,12 @@ class CurrentChatController extends GetxController {
   Future<String?> processLocalImagePath(MessageModel message) async {
     String? imagePath;
     if (message.imageUrl != null) {
-      final localPath = await LocalPhotoService.getLocalPhotoPath(
+      final localPath = await LocalMediaService.getLocalPhotoPath(
         chatKey: chatKey,
         messageId: message.timestamp,
       );
       if (localPath == null) {
-        final path = await LocalPhotoService.downloadAndCachePhoto(
+        final path = await LocalMediaService.downloadAndCachePhoto(
           chatKey: chatKey,
           messageId: message.timestamp,
         );
@@ -377,12 +384,12 @@ class CurrentChatController extends GetxController {
   Future<String?> processLocalVideoPath(MessageModel message) async {
     String? videoPath;
     if (message.videoUrl != null) {
-      final localPath = await LocalPhotoService.getLocalVideoPath(
+      final localPath = await LocalMediaService.getLocalVideoPath(
         chatKey: chatKey,
         messageId: message.timestamp,
       );
       if (localPath == null) {
-        final path = await LocalPhotoService.downloadAndCacheVideo(
+        final path = await LocalMediaService.downloadAndCacheVideo(
           chatKey: chatKey,
           messageId: message.timestamp,
         );
@@ -434,20 +441,11 @@ class CurrentChatController extends GetxController {
     }
 
     for (final message in messagesToUpdate) {
-      final localMessage = localMessages.firstWhere(
-        (e) => e.timestamp == message.timestamp,
-      );
       await sqliteService.updateMessage2(
-        fields: ['local_image_uri', 'local_video_uri'],
-        values: [localMessage.localImagePath, localMessage.localVideoPath],
+        fields: ['content', 'is_read'],
+        values: [message.text, message.isRead ? 1 : 0],
         id: message.timestamp,
       );
-      // await sqliteService.updateMessage(
-      //   message: message.copyWith(
-      //     localImagePath: localMessage.localImagePath,
-      //     localVideoPath: localMessage.localVideoPath,
-      //   ),
-      // );
     }
 
     _messages.value = await sqliteService.getMessages(chatKey: chatKey);

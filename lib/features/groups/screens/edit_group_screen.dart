@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:chat_box/constants/colors.dart';
 import 'package:chat_box/controller/groups_controller.dart';
 import 'package:chat_box/core/ui/custom_text_field.dart';
+import 'package:chat_box/core/ui/filled_icon_button.dart';
 import 'package:chat_box/core/ui/primary_button.dart';
+import 'package:chat_box/core/ui/profile_photo.dart';
 import 'package:chat_box/generated/assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -29,7 +31,9 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
   @override
   void initState() {
     nameController = TextEditingController(text: widget.group.name);
-    descriptionController = TextEditingController(text: widget.group.description,);
+    descriptionController = TextEditingController(
+      text: widget.group.description,
+    );
     super.initState();
   }
 
@@ -43,51 +47,48 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Edit Group',
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                _buildProfilePictureSection(),
-                const SizedBox(height: 30),
-                CustomTextField(
-                  label: 'Group name',
-                  controller: nameController,
-                  textCapitalization: TextCapitalization.words,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 20),
-                CustomTextField(
-                  label: 'Group description',
-                  controller: descriptionController,
-                  textCapitalization: TextCapitalization.words,
-                ),
-                const SizedBox(height: 70),
-                Obx(() {
-                  if (groupsController.isUpdatingGroup) {
-                    return const CircularProgressIndicator(
-                      color: AppColors.myrtleGreen,
-                    );
-                  } else {
-                    return PrimaryButton(
-                      title: 'Update Group',
-                      onPressed: _updateGroup,
-                    );
-                  }
-                }),
-              ],
-            ),
+      appBar: AppBar(
+        title: Text(
+          'Edit Group',
+          style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 30),
+              _buildProfilePictureSection(),
+              const SizedBox(height: 30),
+              CustomTextField(
+                label: 'Group name',
+                controller: nameController,
+                textCapitalization: TextCapitalization.words,
+                textInputAction: TextInputAction.next,
+              ),
+              const SizedBox(height: 20),
+              CustomTextField(
+                label: 'Group description',
+                controller: descriptionController,
+                textCapitalization: TextCapitalization.words,
+              ),
+              const SizedBox(height: 70),
+              Obx(() {
+                if (groupsController.isUpdatingGroup) {
+                  return const CircularProgressIndicator(
+                    color: AppColors.myrtleGreen,
+                  );
+                } else {
+                  return PrimaryButton(
+                    title: 'Update Group',
+                    onPressed: _updateGroup,
+                  );
+                }
+              }),
+            ],
           ),
         ),
       ),
@@ -118,9 +119,9 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
                     fit: BoxFit.cover,
                   )
                 : (widget.group.groupProfilePicUrl != null)
-                    ? Image.network(
-                        widget.group.groupProfilePicUrl!,
-                        fit: BoxFit.cover,
+                    ? ProfilePhoto(
+                        url: widget.group.groupProfilePicUrl,
+                        isGroup: true,
                       )
                     : Image.asset(
                         Assets.imagesUserGroup,
@@ -129,26 +130,22 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
           ),
         ),
         Positioned(
-          right: 0,
+          right: 10,
           bottom: 0,
-          child: IconButton.filled(
-            onPressed: _pickImageFromGallery,
-            icon: const Icon(Icons.add_photo_alternate_outlined),
-            style: IconButton.styleFrom(
-              backgroundColor: AppColors.myrtleGreen,
-            ),
+          child: FilledIconButton(
+            onTap: _pickImageFromGallery,
+            icon: Icons.add_photo_alternate_outlined,
+            backgroundColor: AppColors.myrtleGreen,
           ),
         ),
         if (_image != null)
           Positioned(
             top: 0,
-            right: 0,
-            child: IconButton.filled(
-              onPressed: _removeImage,
-              icon: const Icon(Icons.delete),
-              style: IconButton.styleFrom(
-                backgroundColor: AppColors.grayX11,
-              ),
+            right: 10,
+            child: FilledIconButton(
+              onTap: _removeImage,
+              icon: Icons.delete_rounded,
+              backgroundColor: Colors.grey,
             ),
           ),
       ],

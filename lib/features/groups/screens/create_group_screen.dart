@@ -10,8 +10,12 @@ import 'package:chat_box/core/ui/profile_photo.dart';
 import 'package:chat_box/generated/assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:roundcheckbox/roundcheckbox.dart';
+
+import '../../../core/ui/filled_icon_button.dart';
+import '../../../utils/image_utils.dart';
 
 class CreateGroupScreen extends StatefulWidget {
   const CreateGroupScreen({super.key});
@@ -48,34 +52,49 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+          padding: const EdgeInsets.symmetric(vertical: 40),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  _buildProfilePictureSection(),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: CustomTextField(
-                      label: 'Group name',
-                      controller: nameController,
-                      textCapitalization: TextCapitalization.words,
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                ),
+                child: Row(
+                  children: [
+                    _buildProfilePictureSection(),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: CustomTextField(
+                        label: 'Group name',
+                        controller: nameController,
+                        textCapitalization: TextCapitalization.words,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
-              CustomTextField(
-                label: 'Group Description',
-                controller: descriptionController,
-                textCapitalization: TextCapitalization.sentences,
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                ),
+                child: CustomTextField(
+                  label: 'Group Description',
+                  controller: descriptionController,
+                  textCapitalization: TextCapitalization.sentences,
+                ),
               ),
               const SizedBox(height: 40),
-              Text(
-                'Add Members',
-                style: Theme.of(context).textTheme.displaySmall,
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                ),
+                child: Text(
+                  'Add Members',
+                  style: Theme.of(context).textTheme.displaySmall,
+                ),
               ),
               const SizedBox(height: 20),
               Obx(() {
@@ -91,21 +110,22 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   itemBuilder: (context, index) {
                     final user = users[index];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 5,
-                      ),
-                      child: InkWell(
-                        splashFactory: NoSplash.splashFactory,
-                        onTap: () {
-                          setState(() {
-                            if (userIds.contains(user.email)) {
-                              userIds.remove(user.email);
-                            } else {
-                              userIds.add(user.email);
-                            }
-                          });
-                        },
+                    return InkWell(
+                      splashFactory: NoSplash.splashFactory,
+                      onTap: () {
+                        setState(() {
+                          if (userIds.contains(user.email)) {
+                            userIds.remove(user.email);
+                          } else {
+                            userIds.add(user.email);
+                          }
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 5,
+                        ),
                         child: Row(
                           children: [
                             ProfilePhoto(
@@ -148,9 +168,14 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                     color: AppColors.myrtleGreen,
                   );
                 } else {
-                  return PrimaryButton(
-                    title: 'Create Group',
-                    onPressed: _createGroup,
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                    ),
+                    child: PrimaryButton(
+                      title: 'Create Group',
+                      onPressed: _createGroup,
+                    ),
                   );
                 }
               }),
@@ -181,7 +206,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           child: ClipOval(
             child: (_image == null)
                 ? Image.asset(
-                    Assets.imagesUserProfile,
+                    Assets.iconsTeam,
                     fit: BoxFit.cover,
                   )
                 : Image.file(
@@ -193,20 +218,10 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         Positioned(
           right: 0,
           bottom: 0,
-          child: GestureDetector(
+          child: FilledIconButton(
             onTap: _pickImageFromGallery,
-            child: Container(
-              padding: const EdgeInsets.all(5),
-              decoration: const ShapeDecoration(
-                shape: CircleBorder(),
-                color: AppColors.myrtleGreen,
-              ),
-              child: const Icon(
-                Icons.add_photo_alternate_outlined,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
+            backgroundColor: AppColors.myrtleGreen,
+            icon: Icons.add_photo_alternate_outlined,
           ),
         ),
         if (_image != null)
@@ -254,8 +269,16 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      final croppedImage = await ImageUtils.cropImage(
+        imagePath: image.path,
+        lockAspectRatio: true,
+        aspectRatioPresets: [CropAspectRatioPreset.square],
+        initialAspectRatio: CropAspectRatioPreset.square,
+      );
       setState(() {
-        _image = File(image.path);
+        if (croppedImage != null) {
+          _image = File(croppedImage);
+        }
       });
     }
   }
