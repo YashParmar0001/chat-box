@@ -245,6 +245,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     );
                   },
                 ),
+                groupController: widget.groupChatController,
               ),
             );
           },

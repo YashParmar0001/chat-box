@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    searchController.dispose();
+    // searchController.dispose();
     super.dispose();
   }
 

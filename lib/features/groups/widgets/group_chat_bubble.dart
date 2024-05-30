@@ -1,13 +1,10 @@
-import 'dart:io';
-import 'dart:developer' as dev;
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_box/controller/current_group_controller.dart';
 import 'package:chat_box/core/screens/video_player_screen.dart';
+import 'package:chat_box/features/groups/widgets/group_image_message.dart';
 import 'package:chat_box/generated/assets.dart';
 import 'package:chat_box/model/group_message_model.dart';
 import 'package:chat_box/model/user_model.dart';
-import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -22,12 +19,14 @@ class GroupChatBubble extends StatelessWidget {
     required this.isCurrentUser,
     required this.user,
     required this.isRead,
+    required this.groupController,
   });
 
   final GroupMessageModel message;
   final bool isCurrentUser;
   final bool isRead;
   final UserModel user;
+  final CurrentGroupController groupController;
 
   @override
   Widget build(BuildContext context) {
@@ -106,15 +105,20 @@ class GroupChatBubble extends StatelessWidget {
                             Builder(
                               builder: (context) {
                                 if (message.imageUrl != null) {
-                                  return _buildImage(context);
+                                  return GroupImageMessage(
+                                    key: Key(message.timestamp.toString()),
+                                    message: message,
+                                    isCurrentUser: isCurrentUser,
+                                    groupController: groupController,
+                                  );
                                 } else if (message.videoUrl != null) {
                                   return _buildVideo(context);
                                 } else {
                                   return Container(
                                     constraints: BoxConstraints(
                                       maxWidth:
-                                      MediaQuery.of(context).size.width *
-                                          0.6,
+                                          MediaQuery.of(context).size.width *
+                                              0.6,
                                     ),
                                     child: Text(
                                       message.text,
@@ -123,10 +127,10 @@ class GroupChatBubble extends StatelessWidget {
                                           .textTheme
                                           .bodyMedium
                                           ?.copyWith(
-                                        color: isCurrentUser
-                                            ? Colors.white
-                                            : Colors.black,
-                                      ),
+                                            color: isCurrentUser
+                                                ? Colors.white
+                                                : Colors.black,
+                                          ),
                                     ),
                                   );
                                 }
@@ -158,8 +162,8 @@ class GroupChatBubble extends StatelessWidget {
                     child: Text(
                       DateFormat.jm().format(message.time),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey,
-                      ),
+                            color: Colors.grey,
+                          ),
                     ),
                   ),
                 ],
@@ -231,77 +235,6 @@ class GroupChatBubble extends StatelessWidget {
             ),
           ),
       ],
-    );
-  }
-
-  Widget _buildImage(BuildContext context) {
-    ImageProvider imageProvider;
-
-    if (message.localImagePath != null) {
-      dev.log('Building local image', name: 'LocalStorage');
-      imageProvider = FileImage(File(message.localImagePath!));
-    } else {
-      imageProvider = NetworkImage(message.imageUrl!);
-    }
-
-    final placeholder = Image.asset(
-      Assets.imagesPlaceholderImage,
-      fit: BoxFit.cover,
-      height: 150,
-    );
-
-    return GestureDetector(
-      onTap: () => showImageViewer(
-        context,
-        imageProvider,
-        swipeDismissible: true,
-        useSafeArea: true,
-        doubleTapZoomable: true,
-        immersive: false,
-      ),
-      child: Stack(
-        children: [
-          Image(
-            image: imageProvider,
-            fit: BoxFit.cover,
-            width: 150,
-            height: 150,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress != null &&
-                  loadingProgress.expectedTotalBytes != null) {
-                final percentage = loadingProgress.cumulativeBytesLoaded /
-                    loadingProgress.expectedTotalBytes!;
-                if (percentage == 1) {
-                  return child;
-                } else {
-                  return CircularProgressIndicator(
-                    value: percentage,
-                    color: Colors.white,
-                  );
-                }
-              } else {
-                return child;
-              }
-            },
-            errorBuilder: (context, error, stackTrace) => placeholder,
-          ),
-          if (isCurrentUser)
-            Positioned.fill(
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black87,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
     );
   }
 

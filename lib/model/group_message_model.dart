@@ -7,6 +7,7 @@ class GroupMessageModel {
   final String text;
   final DateTime time;
   final String? imageUrl;
+  final String? blurImageHash;
   final String? videoUrl;
   final String? videoThumbnailUrl;
   String? localImagePath;
@@ -19,6 +20,7 @@ class GroupMessageModel {
     required this.text,
     required this.time,
     this.imageUrl,
+    this.blurImageHash,
     this.videoUrl,
     this.videoThumbnailUrl,
     this.localImagePath,
@@ -56,6 +58,7 @@ class GroupMessageModel {
     String? text,
     DateTime? time,
     String? imageUrl,
+    String? blurImageHash,
     String? videoUrl,
     String? videoThumbnailUrl,
     String? localImagePath,
@@ -68,6 +71,7 @@ class GroupMessageModel {
       text: text ?? this.text,
       time: time ?? this.time,
       imageUrl: imageUrl ?? this.imageUrl,
+      blurImageHash: blurImageHash ?? this.blurImageHash,
       videoUrl: videoUrl ?? this.videoUrl,
       videoThumbnailUrl: videoThumbnailUrl ?? this.videoThumbnailUrl,
       localImagePath: localImagePath ?? this.localImagePath,
@@ -83,6 +87,7 @@ class GroupMessageModel {
       'content': text,
       'time': time.toUtc(),
       'image_url': imageUrl ?? '',
+      'blur_image_hash': blurImageHash ?? '',
       'video_url': videoUrl ?? '',
       'video_thumbnail_url': videoThumbnailUrl ?? '',
       'read_by': readBy,
@@ -96,6 +101,7 @@ class GroupMessageModel {
       'content': text,
       'timestamp': timestamp,
       'image_url': imageUrl ?? '',
+      'blur_image_hash': blurImageHash ?? '',
       'video_url': videoUrl ?? '',
       'video_thumbnail_url': videoThumbnailUrl ?? '',
       'local_image_path': localImagePath ?? '',
@@ -113,6 +119,8 @@ class GroupMessageModel {
           ? (map['time'] as Timestamp).toDate()
           : DateTime.fromMillisecondsSinceEpoch(map['timestamp']),
       imageUrl: map['image_url'] == '' ? null : map['image_url'],
+      blurImageHash:
+          map['blur_image_hash'] == '' ? null : map['blur_image_hash'],
       videoUrl: map['video_url'] == '' ? null : map['video_url'],
       videoThumbnailUrl:
           map['video_thumbnail_url'] == '' || map['video_thumbnail_url'] == null
@@ -123,9 +131,9 @@ class GroupMessageModel {
               ? null
               : map['local_image_path'],
       localVideoPath:
-      map['local_video_path'] == '' || map['local_video_path'] == null
-          ? null
-          : map['local_video_path'],
+          map['local_video_path'] == '' || map['local_video_path'] == null
+              ? null
+              : map['local_video_path'],
       readBy:
           (map['read_by'] as List<dynamic>).map((e) => e.toString()).toList(),
     );

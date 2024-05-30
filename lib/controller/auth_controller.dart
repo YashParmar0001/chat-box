@@ -34,6 +34,7 @@ class AuthController extends GetxController {
         userProfileController.closeSubscriptions();
         groupsController.closeSubscriptions();
         Get.back();
+        Get.back();
         Get.offNamed('/login');
       } else {
         setUserState(true, email: email);

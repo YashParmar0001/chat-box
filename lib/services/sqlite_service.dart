@@ -41,6 +41,7 @@ class SqliteService {
           'content TEXT, '
           'timestamp INTEGER, '
           'image_url TEXT NULL, '
+          'blur_image_hash TEXT NULL, '
           'local_image_path TEXT NULL, '
           'video_url TEXT NULL, '
           'video_thumbnail_url TEXT NULL, '

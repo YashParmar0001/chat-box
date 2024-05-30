@@ -2,6 +2,7 @@ import 'package:chat_box/controller/auth_controller.dart';
 import 'package:chat_box/controller/user_profile_controller.dart';
 import 'package:chat_box/core/ui/profile_photo.dart';
 import 'package:chat_box/features/profile/screens/edit_profile_screen.dart';
+import 'package:chat_box/features/settings/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -19,14 +20,8 @@ class MyProfileScreen extends StatelessWidget {
       appBar: AppBar(
         actions: [
           IconButton(
-            onPressed: () => _showLogoutConfirmationDialog(
-              context,
-              authController,
-            ),
-            icon: const Icon(
-              Icons.logout_rounded,
-              color: Colors.red,
-            ),
+            onPressed: () => Get.to(() => const SettingsScreen()),
+            icon: const Icon(Icons.settings_rounded),
           ),
         ],
       ),
@@ -139,33 +134,6 @@ class MyProfileScreen extends StatelessWidget {
               ),
         ),
       ],
-    );
-  }
-
-  void _showLogoutConfirmationDialog(
-    BuildContext context,
-    AuthController authController,
-  ) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Warning'),
-          content: const Text(
-            'Are you sure you want to logout?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: Get.back,
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: authController.logout,
-              child: const Text('Ok'),
-            ),
-          ],
-        );
-      },
     );
   }
 }
