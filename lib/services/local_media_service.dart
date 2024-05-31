@@ -52,6 +52,21 @@ class LocalMediaService {
     return null;
   }
 
+  static Future<String?> getLocalGroupVideoThumbnailPath({
+    required String groupId,
+    required int messageId,
+  }) async {
+    final localFile = File(
+      '${(await getApplicationDocumentsDirectory()).path}/group_video_thumbnails'
+      '/$groupId/$messageId.jpg',
+    );
+
+    if (await localFile.exists()) {
+      return localFile.path;
+    }
+    return null;
+  }
+
   static Future<String?> getLocalGroupVideoPath({
     required String groupId,
     required int messageId,
@@ -156,6 +171,30 @@ class LocalMediaService {
         await localFile.parent.create(recursive: true);
         await localFile.writeAsBytes(response.toList());
         dev.log('Video stored: $messageId', name: 'LocalStorage');
+      }
+    }
+    return path;
+  }
+
+  static Future<String> downloadAndCacheGroupVideoThumbnail({
+    required String groupId,
+    required int messageId,
+  }) async {
+    final path =
+        '${(await getApplicationDocumentsDirectory()).path}/group_video_thumbnails/$groupId/$messageId.jpg';
+    final localFile = File(path);
+
+    if (!await localFile.exists()) {
+      final response = await FirebaseStorage.instance
+          .ref(
+            'group_video_thumbnails/$groupId/$messageId',
+          )
+          .getData();
+
+      if (response != null) {
+        await localFile.parent.create(recursive: true);
+        await localFile.writeAsBytes(response.toList());
+        dev.log('Video thumbnail stored: $messageId', name: 'LocalStorage');
       }
     }
     return path;

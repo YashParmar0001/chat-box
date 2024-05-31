@@ -48,11 +48,12 @@ class CurrentGroupController extends GetxController {
 
   final _selectedImage = Rx<File?>(null);
 
+  final _selectedVideoPath = Rx<String?>(null);
   final _selectedVideo = Rx<File?>(null);
 
   File? get selectedImage => _selectedImage.value;
 
-  File? get selectedVideo => _selectedVideo.value;
+  File? get selectedVideoFile => _selectedVideo.value;
 
   set selectedImage(File? file) {
     _selectedImage.value = file;
@@ -61,9 +62,10 @@ class CurrentGroupController extends GetxController {
     }
   }
 
-  set selectedVideo(File? file) {
-    _selectedVideo.value = file;
-    if (file != null) {
+  set selectedVideo(String? filePath) {
+    _selectedVideo.value = filePath == null ? null : File(filePath);
+    _selectedVideoPath.value = filePath;
+    if (filePath != null) {
       _selectedImage.value = null;
     }
   }
@@ -240,55 +242,6 @@ class CurrentGroupController extends GetxController {
                 groupKey: groupId,
               );
             }
-
-            if (_messages.contains(message)) {
-              final index = messages.indexWhere(
-                (msg) => msg.timestamp == message.timestamp,
-              );
-              final oldMessage = messages[index];
-
-              // Check for media
-              // if (oldMessage.imageUrl != null &&
-              //     oldMessage.localImagePath == null) {
-              //   dev.log('Processing image path for message', name: 'GroupChat');
-              //   oldMessage.localImagePath ??=
-              //       await processLocalImagePath(oldMessage);
-              //   if (oldMessage.localImagePath != null) {
-              //     // Update UI
-              //     if (index != -1) {
-              //       _messages[index] = _messages[index].copyWith(
-              //         localImagePath: oldMessage.localImagePath,
-              //       );
-              //     }
-              //
-              //     // Update local message
-              //     _sqliteService.updateGroupMessage2(
-              //       fields: ['local_image_path'],
-              //       values: [oldMessage.localImagePath],
-              //       id: oldMessage.timestamp,
-              //     );
-              //   }
-              // } else if (oldMessage.videoUrl != null &&
-              //     oldMessage.localVideoPath == null) {
-              //   oldMessage.localVideoPath ??=
-              //       await processLocalVideoPath(oldMessage);
-              //   if (oldMessage.localVideoPath != null) {
-              //     // Update UI
-              //     if (index != -1) {
-              //       _messages[index] = _messages[index].copyWith(
-              //         localVideoPath: oldMessage.localVideoPath,
-              //       );
-              //     }
-              //
-              //     // Update local message
-              //     _sqliteService.updateGroupMessage2(
-              //       fields: ['local_video_path'],
-              //       values: [message.localVideoPath],
-              //       id: message.timestamp,
-              //     );
-              //   }
-              // }
-            }
           } else if (change.type == DocumentChangeType.modified) {
             dev.log('Modified message: ${message.text}', name: 'GroupChat');
             final existingMessageIndex = messages.indexWhere(
@@ -333,7 +286,7 @@ class CurrentGroupController extends GetxController {
 
   Future<void> sendMessage({bool isMediaMessage = false}) async {
     _isSendingMessage.value = true;
-    if (selectedVideo != null) {
+    if (selectedVideoFile != null) {
       _isSendingVideoMessage.value = true;
     }
     if (selectedImage != null) {
@@ -352,7 +305,7 @@ class CurrentGroupController extends GetxController {
         groupId: groupId,
         message: message,
         image: selectedImage,
-        video: selectedVideo,
+        video: selectedVideoFile,
       );
       messageTextController.clear();
     } catch (e) {
@@ -405,21 +358,6 @@ class CurrentGroupController extends GetxController {
 
   Future<String?> processLocalImagePath(GroupMessageModel message) async {
     String? imagePath;
-    // if (message.imageUrl != null) {
-    //   final localPath = await LocalMediaService.getLocalGroupVideoPath(
-    //     groupId: groupId,
-    //     messageId: message.timestamp,
-    //   );
-    //   if (localPath == null) {
-    //     final path = await LocalMediaService.downloadAndCacheGroupPhoto(
-    //       groupId: groupId,
-    //       messageId: message.timestamp,
-    //     );
-    //     imagePath = path;
-    //   } else {
-    //     imagePath = localPath;
-    //   }
-    // }
     final localPath = await LocalMediaService.getLocalGroupPhotoPath(
       groupId: groupId,
       messageId: message.timestamp,
@@ -456,22 +394,63 @@ class CurrentGroupController extends GetxController {
   }
 
   Future<String?> processLocalVideoPath(GroupMessageModel message) async {
-    String? videoPath;
-    if (message.videoUrl != null) {
-      final localPath = await LocalMediaService.getLocalGroupVideoPath(
+    String? thumbnailPath = message.localThumbnailPath;
+    String? videoPath = message.localVideoPath;
+
+    if (videoPath == null) {
+      final localVideoPath = await LocalMediaService.getLocalGroupVideoPath(
         groupId: groupId,
         messageId: message.timestamp,
       );
-      if (localPath == null) {
-        final path = await LocalMediaService.downloadAndCacheGroupVideo(
+
+      if (localVideoPath == null) {
+        final videoPath0 = await LocalMediaService.downloadAndCacheGroupVideo(
           groupId: groupId,
           messageId: message.timestamp,
         );
-        videoPath = path;
+        videoPath = videoPath0;
       } else {
-        videoPath = localPath;
+        videoPath = localVideoPath;
       }
     }
+
+    if (thumbnailPath == null) {
+      final localThumbnailPath =
+          await LocalMediaService.getLocalGroupVideoThumbnailPath(
+        groupId: groupId,
+        messageId: message.timestamp,
+      );
+
+      if (localThumbnailPath == null) {
+        final thumbnailPath0 =
+            await LocalMediaService.downloadAndCacheGroupVideoThumbnail(
+          groupId: groupId,
+          messageId: message.timestamp,
+        );
+        thumbnailPath = thumbnailPath0;
+      } else {
+        thumbnailPath = localThumbnailPath;
+      }
+    }
+
+    final index = messages.indexWhere(
+      (msg) => msg.timestamp == message.timestamp,
+    );
+
+    // Update UI
+    if (index != -1) {
+      _messages[index] = _messages[index].copyWith(
+        localVideoPath: videoPath,
+        localThumbnailPath: thumbnailPath,
+      );
+    }
+
+    // Update local message
+    _sqliteService.updateGroupMessage2(
+      fields: ['local_video_path', 'local_thumbnail_path'],
+      values: [videoPath, thumbnailPath],
+      id: message.timestamp,
+    );
 
     return videoPath;
   }

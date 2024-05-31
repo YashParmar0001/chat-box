@@ -10,6 +10,7 @@ class Assets {
   static const String iconsCamera = 'assets/icons/camera.svg';
   static const String iconsCameraVideo = 'assets/icons/camera-video.svg';
   static const String iconsDoubleTick = 'assets/icons/double_tick.svg';
+  static const String iconsDownload = 'assets/icons/download.svg';
   static const String iconsEyeClose = 'assets/icons/eye_close.svg';
   static const String iconsEyeOpen = 'assets/icons/eye_open.svg';
   static const String iconsGroup = 'assets/icons/group.png';

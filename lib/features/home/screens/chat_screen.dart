@@ -207,6 +207,7 @@ class _ChatScreenState extends State<ChatScreen> {
               message: sectionMessages[index],
               isCurrentUser: Get.find<AuthController>().email ==
                   sectionMessages[index].senderId,
+              chatController: widget.chatController,
             );
           },
         ),

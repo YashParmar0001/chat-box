@@ -10,7 +10,9 @@ class GroupMessageModel {
   final String? blurImageHash;
   final String? videoUrl;
   final String? videoThumbnailUrl;
+  final String? blurThumbnailHash;
   String? localImagePath;
+  String? localThumbnailPath;
   String? localVideoPath;
   final List<String> readBy;
 
@@ -23,8 +25,10 @@ class GroupMessageModel {
     this.blurImageHash,
     this.videoUrl,
     this.videoThumbnailUrl,
+    this.blurThumbnailHash,
     this.localImagePath,
     this.localVideoPath,
+    this.localThumbnailPath,
     this.readBy = const [],
   });
 
@@ -61,6 +65,8 @@ class GroupMessageModel {
     String? blurImageHash,
     String? videoUrl,
     String? videoThumbnailUrl,
+    String? blurThumbnailHash,
+    String? localThumbnailPath,
     String? localImagePath,
     String? localVideoPath,
     List<String>? readBy,
@@ -74,6 +80,8 @@ class GroupMessageModel {
       blurImageHash: blurImageHash ?? this.blurImageHash,
       videoUrl: videoUrl ?? this.videoUrl,
       videoThumbnailUrl: videoThumbnailUrl ?? this.videoThumbnailUrl,
+      blurThumbnailHash: blurThumbnailHash ?? this.blurThumbnailHash,
+      localThumbnailPath: localThumbnailPath ?? this.localThumbnailPath,
       localImagePath: localImagePath ?? this.localImagePath,
       localVideoPath: localVideoPath ?? this.localVideoPath,
       readBy: readBy ?? this.readBy,
@@ -90,6 +98,7 @@ class GroupMessageModel {
       'blur_image_hash': blurImageHash ?? '',
       'video_url': videoUrl ?? '',
       'video_thumbnail_url': videoThumbnailUrl ?? '',
+      'blur_thumbnail_hash': blurThumbnailHash ?? '',
       'read_by': readBy,
     };
   }
@@ -106,6 +115,8 @@ class GroupMessageModel {
       'video_thumbnail_url': videoThumbnailUrl ?? '',
       'local_image_path': localImagePath ?? '',
       'local_video_path': localVideoPath ?? '',
+      'blur_thumbnail_hash': blurThumbnailHash ?? '',
+      'local_thumbnail_path': localThumbnailPath ?? '',
       'read_by': readBy.isEmpty ? null : readBy.join(','),
     };
   }
@@ -134,6 +145,11 @@ class GroupMessageModel {
           map['local_video_path'] == '' || map['local_video_path'] == null
               ? null
               : map['local_video_path'],
+      blurThumbnailHash:
+          map['blur_thumbnail_hash'] == '' ? null : map['blur_thumbnail_hash'],
+      localThumbnailPath: map['local_thumbnail_path'] == ''
+          ? null
+          : map['local_thumbnail_path'],
       readBy:
           (map['read_by'] as List<dynamic>).map((e) => e.toString()).toList(),
     );

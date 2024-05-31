@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'dart:developer' as dev;
 
+import 'package:blurhash_ffi/blurhash.dart';
 import 'package:chat_box/model/message_model.dart';
 import 'package:chat_box/services/local_media_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
@@ -51,7 +53,8 @@ class ChatRepository {
       if (url == null) {
         throw Exception('Cannot upload image!');
       } else {
-        message = message.copyWith(imageUrl: url);
+        final blurHash = await BlurhashFFI.encode(FileImage(image));
+        message = message.copyWith(imageUrl: url, blurImageHash: blurHash);
       }
     }
 

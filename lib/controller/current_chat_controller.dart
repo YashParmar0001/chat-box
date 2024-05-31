@@ -208,53 +208,54 @@ class CurrentChatController extends GetxController {
 
               sqliteService.storeMessage(message: message, chatKey: chatKey);
 
-              if (_messages.contains(message)) {
-                final index = messages.indexWhere(
-                      (msg) => msg.timestamp == message.timestamp,
-                );
-                final oldMessage = messages[index];
-
-                // Check for media
-                if (oldMessage.imageUrl != null &&
-                    oldMessage.localImagePath == null) {
-                  dev.log('Processing image path for message', name: 'Chat');
-                  oldMessage.localImagePath ??=
-                  await processLocalImagePath(oldMessage);
-                  if (oldMessage.localImagePath != null) {
-                    // Update UI
-                    if (index != -1) {
-                      _messages[index] = _messages[index].copyWith(
-                        localImagePath: oldMessage.localImagePath,
-                      );
-                    }
-
-                    // Update local message
-                    sqliteService.updateMessage2(
-                      fields: ['local_image_uri'],
-                      values: [oldMessage.localImagePath],
-                      id: oldMessage.timestamp,
-                    );
-                  }
-                } else if (oldMessage.videoUrl != null &&
-                    oldMessage.localVideoPath == null) {
-                  oldMessage.localVideoPath ??= await processLocalVideoPath(oldMessage);
-                  if (oldMessage.localVideoPath != null) {
-                    // Update UI
-                    if (index != -1) {
-                      _messages[index] = _messages[index].copyWith(
-                        localVideoPath: oldMessage.localVideoPath,
-                      );
-                    }
-
-                    // Update local message
-                    sqliteService.updateMessage2(
-                      fields: ['local_video_uri'],
-                      values: [message.localVideoPath],
-                      id: message.timestamp,
-                    );
-                  }
-                }
-              }
+              // if (_messages.contains(message)) {
+              //   final index = messages.indexWhere(
+              //     (msg) => msg.timestamp == message.timestamp,
+              //   );
+              //   final oldMessage = messages[index];
+              //
+              //   // Check for media
+              //   if (oldMessage.imageUrl != null &&
+              //       oldMessage.localImagePath == null) {
+              //     dev.log('Processing image path for message', name: 'Chat');
+              //     oldMessage.localImagePath ??=
+              //         await processLocalImagePath(oldMessage);
+              //     if (oldMessage.localImagePath != null) {
+              //       // Update UI
+              //       if (index != -1) {
+              //         _messages[index] = _messages[index].copyWith(
+              //           localImagePath: oldMessage.localImagePath,
+              //         );
+              //       }
+              //
+              //       // Update local message
+              //       sqliteService.updateMessage2(
+              //         fields: ['local_image_uri'],
+              //         values: [oldMessage.localImagePath],
+              //         id: oldMessage.timestamp,
+              //       );
+              //     }
+              //   } else if (oldMessage.videoUrl != null &&
+              //       oldMessage.localVideoPath == null) {
+              //     oldMessage.localVideoPath ??=
+              //         await processLocalVideoPath(oldMessage);
+              //     if (oldMessage.localVideoPath != null) {
+              //       // Update UI
+              //       if (index != -1) {
+              //         _messages[index] = _messages[index].copyWith(
+              //           localVideoPath: oldMessage.localVideoPath,
+              //         );
+              //       }
+              //
+              //       // Update local message
+              //       sqliteService.updateMessage2(
+              //         fields: ['local_video_uri'],
+              //         values: [message.localVideoPath],
+              //         id: message.timestamp,
+              //       );
+              //     }
+              //   }
+              // }
             }
           } else if (change.type == DocumentChangeType.modified) {
             dev.log('Message modified', name: 'Chat');
@@ -362,21 +363,34 @@ class CurrentChatController extends GetxController {
 
   Future<String?> processLocalImagePath(MessageModel message) async {
     String? imagePath;
-    if (message.imageUrl != null) {
-      final localPath = await LocalMediaService.getLocalPhotoPath(
+    final localPath = await LocalMediaService.getLocalPhotoPath(
+      chatKey: chatKey,
+      messageId: message.timestamp,
+    );
+    if (localPath == null) {
+      final path = await LocalMediaService.downloadAndCachePhoto(
         chatKey: chatKey,
         messageId: message.timestamp,
       );
-      if (localPath == null) {
-        final path = await LocalMediaService.downloadAndCachePhoto(
-          chatKey: chatKey,
-          messageId: message.timestamp,
-        );
-        imagePath = path;
-      } else {
-        imagePath = localPath;
-      }
+      imagePath = path;
+    } else {
+      imagePath = localPath;
     }
+
+    final index = messages.indexWhere(
+      (msg) => msg.timestamp == message.timestamp,
+    );
+
+    // Update UI
+    if (index != -1) {
+      _messages[index] = _messages[index].copyWith(localImagePath: imagePath);
+    }
+
+    sqliteService.updateMessage2(
+      fields: ['local_image_uri'],
+      values: [imagePath],
+      id: message.timestamp,
+    );
 
     return imagePath;
   }

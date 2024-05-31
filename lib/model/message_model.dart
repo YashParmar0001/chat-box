@@ -7,6 +7,7 @@ class MessageModel {
   final String text;
   final DateTime time;
   final String? imageUrl;
+  final String? blurImageHash;
   final String? videoUrl;
   final String? videoThumbnailUrl;
   String? localImagePath;
@@ -21,6 +22,7 @@ class MessageModel {
     required this.text,
     required this.time,
     this.imageUrl,
+    this.blurImageHash,
     this.videoUrl,
     this.videoThumbnailUrl,
     this.localImagePath,
@@ -59,7 +61,7 @@ class MessageModel {
       'content': text,
       'time': time.toUtc(),
       'image_url': imageUrl ?? '',
-      // 'local_image_uri': localImagePath ?? '',
+      'blur_image_hash': blurImageHash ?? '',
       'video_url': videoUrl ?? '',
       'video_thumbnail_url': videoThumbnailUrl ?? '',
       'is_read': isRead,
@@ -76,6 +78,7 @@ class MessageModel {
       'content': text,
       'timestamp': timestamp,
       'image_url': imageUrl,
+      'blur_image_hash': blurImageHash ?? '',
       'local_image_uri': localImagePath,
       'video_url': videoUrl,
       'local_video_uri': localVideoPath,
@@ -92,6 +95,7 @@ class MessageModel {
       'content': text,
       'timestamp': timestamp,
       'image_url': imageUrl,
+      'blur_image_hash': blurImageHash ?? '',
       'video_url': videoUrl,
       'video_thumbnail_url': videoThumbnailUrl,
       'is_read': isRead ? 1 : 0,
@@ -109,6 +113,8 @@ class MessageModel {
           ? (map['time'] as Timestamp).toDate()
           : DateTime.fromMillisecondsSinceEpoch(map['timestamp']),
       imageUrl: map['image_url'] == '' ? null : map['image_url'],
+      blurImageHash:
+          map['blur_image_hash'] == '' ? null : map['blur_image_hash'],
       videoUrl: map['video_url'] == '' ? null : map['video_url'],
       videoThumbnailUrl:
           map['video_thumbnail_url'] == '' ? null : map['video_thumbnail_url'],
@@ -131,6 +137,7 @@ class MessageModel {
     String? text,
     DateTime? time,
     String? imageUrl,
+    String? blurImageHash,
     String? videoUrl,
     String? videoThumbnailUrl,
     String? localImagePath,
@@ -144,6 +151,7 @@ class MessageModel {
       text: text ?? this.text,
       time: time ?? this.time,
       imageUrl: imageUrl ?? this.imageUrl,
+      blurImageHash: blurImageHash ?? this.blurImageHash,
       videoUrl: videoUrl ?? this.videoUrl,
       videoThumbnailUrl: videoThumbnailUrl ?? this.videoThumbnailUrl,
       localImagePath: localImagePath ?? this.localImagePath,

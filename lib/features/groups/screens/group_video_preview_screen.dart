@@ -25,7 +25,7 @@ class _GroupVideoPreviewScreenState extends State<GroupVideoPreviewScreen> {
   @override
   void initState() {
     _controller = VideoPlayerController.file(
-      widget.groupController.selectedVideo!,
+      widget.groupController.selectedVideoFile!,
     );
     _controller.initialize().then((_) => setState(() {}));
 

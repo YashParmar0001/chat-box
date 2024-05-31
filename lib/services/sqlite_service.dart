@@ -25,6 +25,7 @@ class SqliteService {
           'content TEXT, '
           'timestamp INTEGER, '
           'image_url TEXT NULL, '
+          'blur_image_hash TEXT NULL, '
           'local_image_uri TEXT NULL, '
           'video_url TEXT NULL, '
           'video_thumbnail_url TEXT NULL, '
@@ -46,6 +47,8 @@ class SqliteService {
           'video_url TEXT NULL, '
           'video_thumbnail_url TEXT NULL, '
           'local_video_path TEXT NULL, '
+          'blur_thumbnail_hash TEXT NULL, '
+          'local_thumbnail_path TEXT NULL, '
           'read_by TEXT NULL'
           ')',
         );

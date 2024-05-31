@@ -112,7 +112,7 @@ class GroupRepository {
     });
   }
 
-  Future<void> sendMessage({
+  Future<GroupMessageModel> sendMessage({
     required String groupId,
     required GroupMessageModel message,
     File? image,
@@ -136,7 +136,11 @@ class GroupRepository {
             id: message.timestamp.toString(),
           );
           if (thumbnailUrl != null) {
-            message = message.copyWith(videoThumbnailUrl: thumbnailUrl);
+            final blurHash = await BlurhashFFI.encode(FileImage(thumbnailFile));
+            message = message.copyWith(
+              videoThumbnailUrl: thumbnailUrl,
+              blurThumbnailHash: blurHash,
+            );
           }
         }
       }
@@ -162,6 +166,8 @@ class GroupRepository {
         .collection('messages')
         .doc(message.timestamp.toString())
         .set(message.toMap());
+
+    return message;
   }
 
   Future<String?> uploadImage({

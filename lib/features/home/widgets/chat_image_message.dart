@@ -2,9 +2,9 @@ import 'dart:io';
 import 'dart:developer' as dev;
 
 import 'package:blurhash_ffi/blurhash_ffi.dart';
-import 'package:chat_box/controller/current_group_controller.dart';
+import 'package:chat_box/controller/current_chat_controller.dart';
 import 'package:chat_box/controller/settings_controller.dart';
-import 'package:chat_box/model/group_message_model.dart';
+import 'package:chat_box/model/message_model.dart';
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -12,23 +12,23 @@ import 'package:get/get.dart';
 
 import '../../../generated/assets.dart';
 
-class GroupImageMessage extends StatefulWidget {
-  const GroupImageMessage({
+class ChatImageMessage extends StatefulWidget {
+  const ChatImageMessage({
     super.key,
     required this.message,
     required this.isCurrentUser,
-    required this.groupController,
+    required this.chatController,
   });
 
-  final GroupMessageModel message;
+  final MessageModel message;
   final bool isCurrentUser;
-  final CurrentGroupController groupController;
+  final CurrentChatController chatController;
 
   @override
-  State<GroupImageMessage> createState() => _GroupImageMessageState();
+  State<ChatImageMessage> createState() => _ChatImageMessageState();
 }
 
-class _GroupImageMessageState extends State<GroupImageMessage> {
+class _ChatImageMessageState extends State<ChatImageMessage> {
   bool isDownloadingImage = false;
   final autoDownload = Get.find<SettingsController>().autoDownload;
 
@@ -37,7 +37,7 @@ class _GroupImageMessageState extends State<GroupImageMessage> {
     if (autoDownload ||
         (widget.message.localImagePath == null && widget.isCurrentUser)) {
       isDownloadingImage = true;
-      widget.groupController.processLocalImagePath(widget.message);
+      widget.chatController.processLocalImagePath(widget.message);
     }
     super.initState();
   }
@@ -107,16 +107,18 @@ class _GroupImageMessageState extends State<GroupImageMessage> {
             ),
           if (widget.message.localImagePath == null && !isDownloadingImage)
             Positioned.fill(
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    isDownloadingImage = true;
-                    widget.groupController.processLocalImagePath(
-                      widget.message,
-                    );
-                  });
-                },
-                child: SvgPicture.asset(Assets.iconsDownload),
+              child: Center(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      isDownloadingImage = true;
+                      widget.chatController.processLocalImagePath(
+                        widget.message,
+                      );
+                    });
+                  },
+                  child: SvgPicture.asset(Assets.iconsDownload, width: 40),
+                ),
               ),
             ),
         ],

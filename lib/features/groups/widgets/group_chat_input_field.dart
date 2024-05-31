@@ -240,7 +240,7 @@ class GroupChatInputField extends StatelessWidget {
       maxDuration: const Duration(seconds: 10),
     );
     if (video != null) {
-      chatController.selectedVideo = File(video.path);
+      chatController.selectedVideo = video.path;
       Get.to(
         () => GroupVideoPreviewScreen(groupController: chatController),
       );
