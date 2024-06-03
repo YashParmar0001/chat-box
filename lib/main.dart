@@ -1,4 +1,5 @@
 import 'package:chat_box/binding.dart';
+import 'package:chat_box/config/onesignal_config.dart';
 import 'package:chat_box/constants/app_theme.dart';
 import 'package:chat_box/core/ui/shell_screen.dart';
 import 'package:chat_box/features/auth/screens/create_profile_screen.dart';
@@ -8,6 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 import 'firebase_options.dart';
 
@@ -19,6 +21,15 @@ Future<void> main() async {
   FirebaseFirestore.instance.settings = const Settings(
     persistenceEnabled: false,
   );
+
+  OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+  OneSignal.initialize(OneSignalConfig.oneSignalAppId);
+  OneSignal.Notifications.requestPermission(true);
+  OneSignal.Notifications.clearAll();
+  OneSignal.Notifications.addForegroundWillDisplayListener((event) {
+    event.preventDefault();
+  });
+
   runApp(const MyApp());
 }
 

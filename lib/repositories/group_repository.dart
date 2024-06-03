@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:developer' as dev;
 
@@ -10,7 +11,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:http/http.dart' as http;
 
+import '../config/onesignal_config.dart';
 import '../model/group_typing_status.dart';
 import '../services/local_media_service.dart';
 
@@ -113,14 +116,15 @@ class GroupRepository {
   }
 
   Future<GroupMessageModel> sendMessage({
-    required String groupId,
+    required Group group,
     required GroupMessageModel message,
+    required String userName,
     File? image,
     File? video,
   }) async {
     if (video != null) {
       final url = await uploadVideo(
-        groupId: groupId,
+        groupId: group.id,
         video: video,
         id: message.timestamp.toString(),
       );
@@ -128,10 +132,10 @@ class GroupRepository {
         throw Exception('Cannot upload video!');
       } else {
         message = message.copyWith(videoUrl: url);
-        final thumbnailFile = await generateThumbnail(groupId, url);
+        final thumbnailFile = await generateThumbnail(group.id, url);
         if (thumbnailFile != null) {
           final thumbnailUrl = await uploadThumbnail(
-            groupId: groupId,
+            groupId: group.id,
             thumbnail: thumbnailFile,
             id: message.timestamp.toString(),
           );
@@ -148,7 +152,7 @@ class GroupRepository {
 
     if (image != null) {
       final url = await uploadImage(
-        groupId: groupId,
+        groupId: group.id,
         image: image,
         id: message.timestamp.toString(),
       );
@@ -162,10 +166,23 @@ class GroupRepository {
 
     await _firestore
         .collection('groups')
-        .doc(groupId)
+        .doc(group.id)
         .collection('messages')
         .doc(message.timestamp.toString())
         .set(message.toMap());
+
+    String content = '$userName: ${message.text}';
+    if (image != null) {
+      content = '$userName: 📷 Photo';
+    }else if (video != null) {
+      content = '$userName: 📹 Video';
+    }
+
+    sendPushNotification(
+      content: content,
+      title: group.name,
+      listOfToken: group.memberIds,
+    );
 
     return message;
   }
@@ -323,5 +340,42 @@ class GroupRepository {
         .collection('messages')
         .doc(message.timestamp.toString())
         .delete();
+  }
+
+  Future<void> sendPushNotification({
+    required String content,
+    required String title,
+    required List<String> listOfToken,
+  }) async {
+    try {
+      var url = Uri.parse(OneSignalConfig.oneSignalApiUrl);
+      var client = http.Client();
+      var headers = {
+        "Content-Type": "application/json; charset=utf-8",
+        "Authorization": "Basic ${OneSignalConfig.restApiKey}",
+      };
+      var body = {
+        "app_id": OneSignalConfig.oneSignalAppId,
+        "contents": {"en": content},
+        // "included_segments": ["All"],
+        "include_external_user_ids": listOfToken,
+        "headings": {"en": title},
+        "priority": "HIGH",
+        // "small_icon":
+        // 'https://www.gstatic.com/mobilesdk/160503_mobilesdk/logo/2x/firebase_28dp.png',
+      };
+      var response =
+          await client.post(url, headers: headers, body: json.encode(body));
+      if (response.statusCode == 200) {
+        dev.log(
+          "Notification is sent Successfully ${response.body} ",
+          name: 'Notification',
+        );
+      } else {
+        dev.log("Got errors : ${response.body}", name: "Notification");
+      }
+    } catch (e) {
+      dev.log("Got errors : $e", name: "Notification");
+    }
   }
 }

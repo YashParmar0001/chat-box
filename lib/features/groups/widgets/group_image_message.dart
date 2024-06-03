@@ -107,16 +107,18 @@ class _GroupImageMessageState extends State<GroupImageMessage> {
             ),
           if (widget.message.localImagePath == null && !isDownloadingImage)
             Positioned.fill(
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    isDownloadingImage = true;
-                    widget.groupController.processLocalImagePath(
-                      widget.message,
-                    );
-                  });
-                },
-                child: SvgPicture.asset(Assets.iconsDownload),
+              child: Center(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      isDownloadingImage = true;
+                      widget.groupController.processLocalImagePath(
+                        widget.message,
+                      );
+                    });
+                  },
+                  child: SvgPicture.asset(Assets.iconsDownload),
+                ),
               ),
             ),
         ],

@@ -32,6 +32,7 @@ migrate_working_dir/
 /build/
 
 /lib/firebase_options.dart
+/lib/config/onesignal_config.dart
 
 # Symbolication related
 app.*.symbols

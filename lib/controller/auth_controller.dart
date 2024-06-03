@@ -4,6 +4,7 @@ import 'package:chat_box/controller/groups_controller.dart';
 import 'package:chat_box/controller/user_profile_controller.dart';
 import 'package:chat_box/repositories/auth_repository.dart';
 import 'package:get/get.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class AuthController extends GetxController {
   final _authRepository = AuthRepository();
@@ -33,6 +34,7 @@ class AuthController extends GetxController {
         _email.value = null;
         userProfileController.closeSubscriptions();
         groupsController.closeSubscriptions();
+        OneSignal.logout();
         Get.back();
         Get.back();
         Get.offNamed('/login');
@@ -40,6 +42,7 @@ class AuthController extends GetxController {
         setUserState(true, email: email);
         if (email != null) {
           groupsController.getGroups();
+          OneSignal.login(email!);
         }
       }
     });
@@ -47,6 +50,7 @@ class AuthController extends GetxController {
     if (isAuthenticated) {
       userProfileController.getUserProfile(email!);
       groupsController.getGroups();
+      OneSignal.login(email!);
       Get.offNamed('/shell');
     }
     super.onInit();

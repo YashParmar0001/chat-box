@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:io';
 
+import 'package:chat_box/controller/user_profile_controller.dart';
 import 'package:chat_box/model/group_message_model.dart';
 import 'package:chat_box/model/group_model.dart';
 import 'package:chat_box/model/group_typing_status.dart';
@@ -293,8 +294,10 @@ class CurrentGroupController extends GetxController {
       _isSendingImageMessage.value = true;
     }
 
+    final currentUser = Get.find<UserProfileController>().currentUserProfile!;
+
     final message = GroupMessageModel(
-      senderId: currentUserId,
+      senderId: currentUser.email,
       groupId: groupId,
       text: messageTextController.text.trim(),
       time: DateTime.now(),
@@ -302,8 +305,9 @@ class CurrentGroupController extends GetxController {
 
     try {
       await _groupRepository.sendMessage(
-        groupId: groupId,
+        group: group!,
         message: message,
+        userName: currentUser.name,
         image: selectedImage,
         video: selectedVideoFile,
       );
