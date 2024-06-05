@@ -10,7 +10,9 @@ class MessageModel {
   final String? blurImageHash;
   final String? videoUrl;
   final String? videoThumbnailUrl;
+  final String? blurThumbnailHash;
   String? localImagePath;
+  String? localThumbnailPath;
   String? localVideoPath;
   final bool isRead;
   final bool isDelivered;
@@ -25,7 +27,9 @@ class MessageModel {
     this.blurImageHash,
     this.videoUrl,
     this.videoThumbnailUrl,
+    this.blurThumbnailHash,
     this.localImagePath,
+    this.localThumbnailPath,
     this.localVideoPath,
     required this.isRead,
     required this.isDelivered,
@@ -64,6 +68,7 @@ class MessageModel {
       'blur_image_hash': blurImageHash ?? '',
       'video_url': videoUrl ?? '',
       'video_thumbnail_url': videoThumbnailUrl ?? '',
+      'blur_thumbnail_hash': blurThumbnailHash ?? '',
       'is_read': isRead,
       'is_delivered': isDelivered,
     };
@@ -83,6 +88,8 @@ class MessageModel {
       'video_url': videoUrl,
       'local_video_uri': localVideoPath,
       'video_thumbnail_url': videoThumbnailUrl,
+      'blur_thumbnail_hash': blurThumbnailHash ?? '',
+      'local_thumbnail_path': localThumbnailPath ?? '',
       'is_read': isRead ? 1 : 0,
       'is_delivered': isDelivered ? 1 : 0,
     };
@@ -98,6 +105,8 @@ class MessageModel {
       'blur_image_hash': blurImageHash ?? '',
       'video_url': videoUrl,
       'video_thumbnail_url': videoThumbnailUrl,
+      'blur_thumbnail_hash': blurThumbnailHash ?? '',
+      'local_thumbnail_path': localThumbnailPath ?? '',
       'is_read': isRead ? 1 : 0,
       'is_delivered': isDelivered ? 1 : 0,
     };
@@ -118,6 +127,11 @@ class MessageModel {
       videoUrl: map['video_url'] == '' ? null : map['video_url'],
       videoThumbnailUrl:
           map['video_thumbnail_url'] == '' ? null : map['video_thumbnail_url'],
+      blurThumbnailHash:
+          map['blur_thumbnail_hash'] == '' ? null : map['blur_thumbnail_hash'],
+      localThumbnailPath: map['local_thumbnail_path'] == ''
+          ? null
+          : map['local_thumbnail_path'],
       localImagePath:
           map['local_image_uri'] == '' ? null : map['local_image_uri'],
       localVideoPath:
@@ -140,8 +154,10 @@ class MessageModel {
     String? blurImageHash,
     String? videoUrl,
     String? videoThumbnailUrl,
+    String? blurThumbnailHash,
     String? localImagePath,
     String? localVideoPath,
+    String? localThumbnailPath,
     bool? isRead,
     bool? isDelivered,
   }) {
@@ -154,8 +170,10 @@ class MessageModel {
       blurImageHash: blurImageHash ?? this.blurImageHash,
       videoUrl: videoUrl ?? this.videoUrl,
       videoThumbnailUrl: videoThumbnailUrl ?? this.videoThumbnailUrl,
+      blurThumbnailHash: blurThumbnailHash ?? this.blurThumbnailHash,
       localImagePath: localImagePath ?? this.localImagePath,
       localVideoPath: localVideoPath ?? this.localVideoPath,
+      localThumbnailPath: localThumbnailPath ?? this.localThumbnailPath,
       isRead: isRead ?? this.isRead,
       isDelivered: isDelivered ?? this.isDelivered,
     );

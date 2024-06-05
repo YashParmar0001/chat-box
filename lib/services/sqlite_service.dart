@@ -30,6 +30,8 @@ class SqliteService {
           'video_url TEXT NULL, '
           'video_thumbnail_url TEXT NULL, '
           'local_video_uri TEXT NULL, '
+          'blur_thumbnail_hash TEXT NULL, '
+          'local_thumbnail_path TEXT NULL, '
           'is_read INTEGER, '
           'is_delivered INTEGER'
           ')',

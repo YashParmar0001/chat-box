@@ -6,6 +6,8 @@ import 'package:chat_box/repositories/auth_repository.dart';
 import 'package:get/get.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
+import '../core/listeners/notification_click_listener.dart';
+
 class AuthController extends GetxController {
   final _authRepository = AuthRepository();
 
@@ -28,13 +30,13 @@ class AuthController extends GetxController {
     final userProfileController = Get.put(UserProfileController());
     final groupsController = Get.put(GroupsController());
 
-    ever(_isAuthenticated, (isAuthenticated) {
+    ever(_isAuthenticated, (isAuthenticated) async {
       if (!isAuthenticated) {
         setUserState(false, email: email);
         _email.value = null;
         userProfileController.closeSubscriptions();
         groupsController.closeSubscriptions();
-        OneSignal.logout();
+        await OneSignal.logout();
         Get.back();
         Get.back();
         Get.offNamed('/login');
@@ -42,12 +44,14 @@ class AuthController extends GetxController {
         setUserState(true, email: email);
         if (email != null) {
           groupsController.getGroups();
-          OneSignal.login(email!);
+          // OneSignal.login(email!);
         }
       }
     });
     final isAuthenticated = await checkIsAuthenticated();
     if (isAuthenticated) {
+      dev.log('User is authenticated', name: 'Notifications');
+      OneSignal.Notifications.addClickListener(notificationClickListener);
       userProfileController.getUserProfile(email!);
       groupsController.getGroups();
       OneSignal.login(email!);
@@ -87,8 +91,10 @@ class AuthController extends GetxController {
     } else {
       _isAuthenticated.value = true;
       _email.value = email;
+      OneSignal.Notifications.addClickListener(notificationClickListener);
       Get.find<UserProfileController>().getUserProfile(email);
       Get.find<GroupsController>().getGroups();
+      OneSignal.login(email);
       Get.offNamed('/shell');
     }
     _isLoggingIn.value = false;

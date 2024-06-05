@@ -5,6 +5,7 @@ import 'package:chat_box/constants/colors.dart';
 import 'package:chat_box/controller/auth_controller.dart';
 import 'package:chat_box/controller/chat_controller.dart';
 import 'package:chat_box/controller/current_chat_controller.dart';
+import 'package:chat_box/core/listeners/chat_foreground_listener.dart';
 import 'package:chat_box/features/home/screens/user_profile_screen.dart';
 import 'package:chat_box/features/home/widgets/chat_bubble.dart';
 import 'package:chat_box/features/home/widgets/chat_input_field.dart';
@@ -12,6 +13,7 @@ import 'package:chat_box/utils/formatting_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 import '../../../generated/assets.dart';
 import '../../../model/message_model.dart';
@@ -49,7 +51,15 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }
     });
+
+    OneSignal.Notifications.addForegroundWillDisplayListener(listener);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    OneSignal.Notifications.removeForegroundWillDisplayListener(listener);
+    super.dispose();
   }
 
   @override
@@ -57,9 +67,13 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Obx(() {
+          bool isCurrentUser = false;
           final user = Get.find<ChatController>()
               .users
               .firstWhere((e) => e.email == widget.userId);
+          if (widget.chatController.otherUserId == widget.chatController.currentUserId) {
+            isCurrentUser = true;
+          }
           return InkWell(
             borderRadius: BorderRadius.circular(20),
             onTap: () => Get.to(() => UserProfileScreen(user: user)),
@@ -104,7 +118,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      user.name,
+                      isCurrentUser ? 'You' : user.name,
                       style:
                           Theme.of(context).textTheme.displayMedium?.copyWith(
                                 fontWeight: FontWeight.w600,
@@ -173,6 +187,10 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
+  }
+
+  void listener(OSNotificationWillDisplayEvent event) {
+    chatForegroundListener(event, widget.chatController.chatKey);
   }
 
   Widget _buildMessageSections(BuildContext context, int sectionIndex) {

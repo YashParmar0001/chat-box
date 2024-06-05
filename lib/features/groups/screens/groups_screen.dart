@@ -80,7 +80,6 @@ class _Group extends StatelessWidget {
     return InkWell(
       onTap: () => Get.to(
         () => GroupChatScreen(
-          userId: Get.find<AuthController>().email!,
           groupChatController: Get.put(
             CurrentGroupController(
               groupId: group.id,

@@ -25,10 +25,7 @@ Future<void> main() async {
   OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
   OneSignal.initialize(OneSignalConfig.oneSignalAppId);
   OneSignal.Notifications.requestPermission(true);
-  OneSignal.Notifications.clearAll();
-  OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-    event.preventDefault();
-  });
+  // OneSignal.Notifications.clearAll();
 
   runApp(const MyApp());
 }

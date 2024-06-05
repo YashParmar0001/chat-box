@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:developer' as dev;
 
@@ -9,6 +10,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:http/http.dart' as http;
+
+import '../config/onesignal_config.dart';
 
 class ChatRepository {
   final _firestore = FirebaseFirestore.instance;
@@ -17,6 +21,7 @@ class ChatRepository {
   Future<void> sendMessage({
     required String chatKey,
     required MessageModel message,
+    required String userName,
     File? image,
     File? video,
   }) async {
@@ -38,7 +43,11 @@ class ChatRepository {
             id: message.timestamp.toString(),
           );
           if (thumbnailUrl != null) {
-            message = message.copyWith(videoThumbnailUrl: thumbnailUrl);
+            final blurHash = await BlurhashFFI.encode(FileImage(thumbnailFile));
+            message = message.copyWith(
+              videoThumbnailUrl: thumbnailUrl,
+              blurThumbnailHash: blurHash,
+            );
           }
         }
       }
@@ -64,6 +73,19 @@ class ChatRepository {
         .collection('messages')
         .doc(message.timestamp.toString())
         .set(message.toMapTime());
+
+    String content = message.text;
+    if (image != null) {
+      content = '📷 Photo';
+    }else if (video != null) {
+      content = '📹 Video';
+    }
+
+    sendPushNotification(
+      content: content,
+      title: userName,
+      message: message,
+    );
   }
 
   Future<void> changeMessageToDelivered(
@@ -249,5 +271,46 @@ class ChatRepository {
             .toList();
       },
     );
+  }
+
+  Future<void> sendPushNotification({
+    required String content,
+    required String title,
+    required MessageModel message,
+  }) async {
+    try {
+      var url = Uri.parse(OneSignalConfig.oneSignalApiUrl);
+      var client = http.Client();
+      var headers = {
+        "Content-Type": "application/json; charset=utf-8",
+        "Authorization": "Basic ${OneSignalConfig.restApiKey}",
+      };
+      var body = {
+        "app_id": OneSignalConfig.oneSignalAppId,
+        "contents": {"en": content},
+        // "included_segments": ["All"],
+        "include_external_user_ids": [message.receiverId],
+        "headings": {"en": title},
+        "priority": "HIGH",
+        "data" : {
+          "sender_id" : message.senderId,
+          "receiver_id" : message.receiverId,
+        },
+        // "small_icon":
+        // 'https://www.gstatic.com/mobilesdk/160503_mobilesdk/logo/2x/firebase_28dp.png',
+      };
+      var response =
+      await client.post(url, headers: headers, body: json.encode(body));
+      if (response.statusCode == 200) {
+        dev.log(
+          "Notification is sent Successfully ${response.body} ",
+          name: 'Notification',
+        );
+      } else {
+        dev.log("Got errors : ${response.body}", name: "Notification");
+      }
+    } catch (e) {
+      dev.log("Got errors : $e", name: "Notification");
+    }
   }
 }

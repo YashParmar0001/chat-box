@@ -23,4 +23,8 @@ class FormattingUtils {
       return DateFormat('d MMM').format(timestamp);
     }
   }
+
+  static String getChatKey(String senderId, String receiverId) {
+    return ([senderId, receiverId]..sort()).join('#');
+  }
 }

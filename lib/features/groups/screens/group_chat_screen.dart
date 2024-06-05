@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_box/controller/chat_controller.dart';
 import 'package:chat_box/controller/current_group_controller.dart';
 import 'package:chat_box/controller/groups_controller.dart';
+import 'package:chat_box/core/listeners/group_chat_foreground_listener.dart';
 import 'package:chat_box/features/groups/screens/group_details_screen.dart';
 import 'package:chat_box/features/groups/widgets/group_chat_bubble.dart';
 import 'package:chat_box/features/groups/widgets/group_chat_input_field.dart';
@@ -12,6 +13,7 @@ import 'package:chat_box/model/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 import '../../../constants/colors.dart';
 import '../../../controller/auth_controller.dart';
@@ -21,11 +23,9 @@ import '../../../utils/formatting_utils.dart';
 class GroupChatScreen extends StatefulWidget {
   const GroupChatScreen({
     super.key,
-    required this.userId,
     required this.groupChatController,
   });
 
-  final String userId;
   final CurrentGroupController groupChatController;
 
   @override
@@ -52,7 +52,19 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         }
       }
     });
+
+    OneSignal.Notifications.addForegroundWillDisplayListener(listener);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    OneSignal.Notifications.removeForegroundWillDisplayListener(listener);
+    super.dispose();
+  }
+
+  void listener(OSNotificationWillDisplayEvent event) {
+    groupChatForegroundListener(event, widget.groupChatController.groupId);
   }
 
   @override

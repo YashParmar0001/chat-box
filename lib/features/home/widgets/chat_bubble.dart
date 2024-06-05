@@ -1,7 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_box/controller/current_chat_controller.dart';
-import 'package:chat_box/core/screens/video_player_screen.dart';
 import 'package:chat_box/features/home/widgets/chat_image_message.dart';
+import 'package:chat_box/features/home/widgets/chat_video_message.dart';
 import 'package:chat_box/generated/assets.dart';
 import 'package:chat_box/model/message_model.dart';
 import 'package:flutter/material.dart';
@@ -82,7 +81,12 @@ class ChatBubble extends StatelessWidget {
                                   chatController: chatController,
                                 );
                               } else if (message.videoUrl != null) {
-                                return _buildVideo(context);
+                                // return _buildVideo(context);
+                                return ChatVideoMessage(
+                                  isCurrentUser: isCurrentUser,
+                                  message: message,
+                                  chatController: chatController,
+                                );
                               } else {
                                 return Text(
                                   message.text,
@@ -154,82 +158,6 @@ class ChatBubble extends StatelessWidget {
           );
         }
       },
-    );
-  }
-
-  Widget _buildVideo(BuildContext context) {
-    Widget videoPlaceholder = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.video_camera_back_outlined,
-          color: isCurrentUser ? Colors.white : AppColors.myrtleGreen,
-        ),
-        const SizedBox(width: 10),
-        Text(
-          'Video',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: isCurrentUser ? Colors.white : Colors.black,
-                fontFamily: 'Poppins',
-              ),
-        ),
-      ],
-    );
-
-    return GestureDetector(
-      onTap: () {
-        Get.to(
-          () => VideoPlayerScreen(
-            videoUrl: message.videoUrl!,
-            localVideoPath: message.localVideoPath,
-          ),
-        );
-      },
-      child: (message.videoThumbnailUrl != null)
-          ? Stack(
-              children: [
-                CachedNetworkImage(
-                  imageUrl: message.videoThumbnailUrl!,
-                  imageBuilder: (context, imageProvider) {
-                    return Stack(
-                      children: [
-                        Image(
-                          image: imageProvider,
-                          fit: BoxFit.cover,
-                          // height: 150,
-                          width: 200,
-                        ),
-                        const Positioned.fill(
-                          child: Icon(
-                            Icons.play_arrow_rounded,
-                            color: Colors.white,
-                            size: 50,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                  errorWidget: (context, url, error) => videoPlaceholder,
-                  placeholder: (context, url) => videoPlaceholder,
-                ),
-                if (isCurrentUser)
-                  Positioned.fill(
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black87,
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            )
-          : videoPlaceholder,
     );
   }
 

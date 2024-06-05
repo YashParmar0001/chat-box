@@ -180,8 +180,7 @@ class GroupRepository {
 
     sendPushNotification(
       content: content,
-      title: group.name,
-      listOfToken: group.memberIds,
+      group: group,
     );
 
     return message;
@@ -344,8 +343,7 @@ class GroupRepository {
 
   Future<void> sendPushNotification({
     required String content,
-    required String title,
-    required List<String> listOfToken,
+    required Group group,
   }) async {
     try {
       var url = Uri.parse(OneSignalConfig.oneSignalApiUrl);
@@ -358,9 +356,12 @@ class GroupRepository {
         "app_id": OneSignalConfig.oneSignalAppId,
         "contents": {"en": content},
         // "included_segments": ["All"],
-        "include_external_user_ids": listOfToken,
-        "headings": {"en": title},
+        "include_external_user_ids": group.memberIds,
+        "headings": {"en": group.name},
         "priority": "HIGH",
+        "data" : {
+          "group_id" : group.id,
+        },
         // "small_icon":
         // 'https://www.gstatic.com/mobilesdk/160503_mobilesdk/logo/2x/firebase_28dp.png',
       };
